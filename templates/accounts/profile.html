@@ -1,0 +1,95 @@
+{% extends "accounts/accounts.html" %}
+
+{% block title %}
+Dashboard - {{ user.company.name }}
+{% endblock title %}
+
+{% block content %}
+<header class="site-header scrolled">
+    <div class="page-shell">
+        <nav class="navbar">
+            <a href="/" class="brand">
+                <div class="brand-mark"><span></span></div>
+                <span class="brand-title">{{ user.company.name|default:"Workspace" }}</span>
+            </a>
+            <div class="nav-actions">
+                <a href="{% url 'accounts:logout' %}" class="button-secondary" style="color: #DC2626; border-color: rgba(220,38,38,0.2);">Logout</a>
+            </div>
+        </nav>
+    </div>
+</header>
+
+<div class="page-shell" style="padding-top: 28px;">
+    <main>
+        <div class="profile-wrapper">
+            <aside class="sidebar-panel">
+                <div class="dashboard-card">
+                    <div class="assistant-label">
+                        <span class="assistant-badge"></span>
+                        <strong>User Profile</strong>
+                    </div>
+                    <div class="activity-list">
+                        <div class="activity-row">
+                            <div class="activity-note">
+                                <strong>Full Name</strong>
+                                <span class="activity-meta">{{ user.get_full_name|default:user.username }}</span>
+                            </div>
+                        </div>
+                        <div class="activity-row">
+                            <div class="activity-note">
+                                <strong>Email Address</strong>
+                                <span class="activity-meta">{{ user.email }}</span>
+                            </div>
+                        </div>
+                        <div class="activity-row">
+                            <div class="activity-note">
+                                <strong>Role / Access</strong>
+                                <span class="hero-pill" style="font-size: 0.8rem; padding: 4px 10px;">{{ user.get_role_display }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <section class="dashboard-panel">
+                <div class="dashboard-card">
+                    <div class="panel-heading">
+                        <div>
+                            <h3>Unified Management Console</h3>
+                            <small>Current Organization: <strong>{{ user.company.name }}</strong></small>
+                        </div>
+                        <span class="visual-pill">Active</span>
+                    </div>
+
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <small>Team Members</small>
+                            <span>1</span>
+                        </div>
+                        <div class="stat-card" style="color: var(--accent); background: rgba(6,182,212,0.04);">
+                            <small>Active Projects</small>
+                            <span>0</span>
+                        </div>
+                        <div class="stat-card" style="color: #059669; background: rgba(5,150,105,0.04);">
+                            <small>System Efficiency</small>
+                            <span>100%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-card">
+                    <div class="progress-group">
+                        <div class="progress-label">
+                            <span>Digital Workspace Setup</span>
+                            <span>75%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <span style="width: 75%;"></span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+</div>
+{% endblock content %}

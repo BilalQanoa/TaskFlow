@@ -1,5 +1,4 @@
-from django.shortcuts import render, redirect
-
+from django.shortcuts import render
 
 def index (request):
-    return render(request, 'landing.html')
+    return render (request, 'pages/landing.html')
