@@ -26,8 +26,8 @@
                     <a href="#about">About Us</a>
                 </div>
                 <div class="nav-actions">
-                    <button class="button-secondary">Login</button>
-                    <button class="button-primary">Sign Up</button>
+                    <a href="{% url 'accounts:login' %}" class="button-secondary">Login</a>
+                    <a href="{% url 'accounts:register' %}" class="button-primary">Sign Up</a>
                 </div>
             </nav>
         </header>
@@ -40,7 +40,7 @@
                     <p>TaskFlow AI helps companies organize teams, assign tasks, track progress, and boost productivity
                         using intelligent AI assistance.</p>
                     <div class="hero-actions">
-                        <button class="button-primary large hero-cta">Get Started</button>
+                        <a href="{% url 'accounts:register' %}" class="button-primary large hero-cta">Get Started</a>
                     </div>
                     <div class="hero-notice">
                         <span>+35%</span>
@@ -119,13 +119,6 @@
                 <div class="trust-headline">
                     <span class="eyebrow">Trusted by enterprise teams</span>
                     <h3>Chosen by product, engineering, and operations leaders.</h3>
-                </div>
-                <div class="trust-bar">
-                    <div class="trust-brand">Atlas</div>
-                    <div class="trust-brand">Relay</div>
-                    <div class="trust-brand">Nova</div>
-                    <div class="trust-brand">Arbor</div>
-                    <div class="trust-brand">Pulse</div>
                 </div>
                 <div class="trust-values">
                     <div class="trust-card"><strong>120+</strong><span>Global enterprises integrating TaskFlow
@@ -311,7 +304,7 @@
             </footer>
         </main>
     </div>
-    <script src="{% static 'js/scripts.js' %}" defer></script>
+    <script src="{% static 'js/scripts.js' %}"></script>
 </body>
 
 </html>
