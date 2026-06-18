@@ -1,0 +1,175 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaskFlow AI | Admin Dashboard</title>
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+</head>
+
+<body>
+    <div class="dashboard-shell">
+        <aside class="sidebar">
+            <div class="brand-block">
+                <div class="brand-mark"><span></span></div>
+                <div>
+                    <h1>TaskFlow AI</h1>
+                    <p>Operations Suite</p>
+                </div>
+            </div>
+
+            <nav class="nav-links">
+                <a class="active" href="#">Dashboard</a>
+                <a href="#">Teams</a>
+                <a href="#">Tasks</a>
+                <a href="#">Employees</a>
+                <a href="#">Discussions</a>
+                <a href="#">Settings</a>
+                <a href="#">Profile</a>
+
+            </nav>
+
+            <div class="sidebar-card">
+                <p>Workspace</p>
+                <strong>{{ company.name }}</strong>
+                <span>Secure multi-tenant control center</span>
+            </div>
+        </aside>
+
+        <main class="main-panel">
+            <header class="topbar">
+                <div class="topbar-left">
+                    <button class="icon-button" aria-label="Open menu">☰</button>
+                    <div>
+                        <p class="eyebrow">Company Owner</p>
+                        <h2>Dashboard</h2>
+                    </div>
+                </div>
+
+                <div class="topbar-right">
+                    <button class="icon-button" aria-label="Notifications">🔔</button>
+                    <div class="profile-pill">
+                        <div class="avatar">{{ user.get_full_name|default:user.username|first|upper }}</div>
+                        <div>
+                            <strong>{{ user.get_full_name|default:user.username }}</strong>
+                            <span>Admin</span>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <section class="stats-grid">
+                <article class="stat-card">
+                    <div>
+                        <p>Total Teams</p>
+                        <h3>{{ total_teams }}</h3>
+                    </div>
+                    <a href="#">View all</a>
+                </article>
+                <article class="stat-card">
+                    <div>
+                        <p>Total Employees</p>
+                        <h3>{{ total_employees }}</h3>
+                    </div>
+                    <a href="#">View all</a>
+                </article>
+                <article class="stat-card">
+                    <div>
+                        <p>Active Tasks</p>
+                        <h3>{{ active_tasks }}</h3>
+                    </div>
+                    <a href="#">View all</a>
+                </article>
+                <article class="stat-card">
+                    <div>
+                        <p>Completed Tasks</p>
+                        <h3>{{ completed_tasks }}</h3>
+                    </div>
+                    <a href="#">View all</a>
+                </article>
+            </section>
+
+            <section class="content-grid">
+                <article class="panel panel-chart">
+                    <div class="panel-heading">
+                        <h3>Project Progress</h3>
+                        <span>Live</span>
+                    </div>
+                    <div class="chart-placeholder">
+                        <div class="line-chart">
+                            <span></span><span></span><span></span><span></span>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="panel panel-chart">
+                    <div class="panel-heading">
+                        <h3>Tasks by Status</h3>
+                        <span>Updated</span>
+                    </div>
+                    <div class="chart-placeholder donut">
+                        <div class="donut-center">
+                            <strong>{{ active_tasks }}</strong>
+                            <p>Active</p>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="panel feed-card">
+                    <div class="panel-heading">
+                        <h3>Recent Activities</h3>
+                        <span>Latest</span>
+                    </div>
+                    <ul class="feed-list">
+                        {% for activity in recent_activities %}
+                        <li>
+                            <div class="feed-icon">↺</div>
+                            <div>
+                                <strong>{{ activity.description }}</strong>
+                                <p>{{ activity.created_at|timesince }} ago</p>
+                            </div>
+                        </li>
+                        {% empty %}
+                        <li>
+                            <div class="feed-icon">✓</div>
+                            <div>
+                                <strong>No recent activity yet</strong>
+                                <p>Your company activity will appear here</p>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </article>
+
+                <article class="panel feed-card">
+                    <div class="panel-heading">
+                        <h3>Upcoming Deadlines</h3>
+                        <span>Priority</span>
+                    </div>
+                    <ul class="deadline-list">
+                        {% for task in upcoming_deadlines %}
+                        <li>
+                            <div>
+                                <strong>{{ task.title }}</strong>
+                                <p>{{ task.due_date }}</p>
+                            </div>
+                            <span class="priority-pill {{ task.priority }}">{{ task.priority_label }}</span>
+                        </li>
+                        {% empty %}
+                        <li>
+                            <div>
+                                <strong>No upcoming deadlines</strong>
+                                <p>All clear for now</p>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </article>
+            </section>
+        </main>
+    </div>
+</body>
+
+</html>

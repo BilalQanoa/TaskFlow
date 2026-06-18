@@ -12,6 +12,8 @@ def register(request):
         if form.is_valid():
             user = form.save()
             auth_login(request, user)
+            if user.role == 'company':
+                return redirect('dashboard:dashboard')
             return redirect('accounts:profile')
     else:
         form = CompanyRegistrationForm()
@@ -26,6 +28,8 @@ def login(request):
         if form.is_valid():
             user = form.get_user()
             auth_login(request, user)
+            if user.role == 'company':
+                return redirect('dashboard:dashboard')
             return redirect('accounts:profile')
     else:
         form = UserLoginForm()
