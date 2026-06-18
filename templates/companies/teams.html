@@ -13,7 +13,6 @@ Teams - {{ company.name }}
                 <span class="brand-title">{{ company.name|default:"Workspace" }}</span>
             </a>
             <div class="nav-actions">
-                <a href="{% url 'accounts:profile' %}" class="button-secondary">Dashboard</a>
                 <a href="{% url 'accounts:logout' %}" class="button-secondary"
                     style="color: #DC2626; border-color: rgba(220,38,38,0.2);">Logout</a>
             </div>

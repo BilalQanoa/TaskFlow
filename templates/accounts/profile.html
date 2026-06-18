@@ -13,7 +13,6 @@ Dashboard - {{ user.company.name }}
                 <span class="brand-title">{{ user.company.name|default:"Workspace" }}</span>
             </a>
             <div class="nav-actions">
-                <a href="{% url 'companies:teams' %}" class="button-secondary">Manage Teams</a>
                 <a href="{% url 'accounts:logout' %}" class="button-secondary"
                     style="color: #DC2626; border-color: rgba(220,38,38,0.2);">Logout</a>
             </div>

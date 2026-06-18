@@ -7,6 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TaskFlow AI | Admin Dashboard</title>
     <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 </head>
 
 <body>
@@ -21,14 +22,13 @@
             </div>
 
             <nav class="nav-links">
-                <a class="active" href="#">Dashboard</a>
-                <a href="#">Teams</a>
-                <a href="#">Tasks</a>
-                <a href="#">Employees</a>
-                <a href="#">Discussions</a>
-                <a href="#">Settings</a>
-                <a href="#">Profile</a>
-
+                <a class="active" href="{% url 'dashboard:dashboard' %}">Dashboard</a>
+                <a href="{% url 'dashboard:teams' %}">Teams</a>
+                <a href="{% url 'dashboard:tasks' %}">Tasks</a>
+                <a href="{% url 'dashboard:employees' %}">Employees</a>
+                <a href="{% url 'dashboard:discussions' %}">Discussions</a>
+                <a href="{% url 'dashboard:settings' %}">Settings</a>
+                <a href="{% url 'dashboard:profile' %}">Profile</a>
             </nav>
 
             <div class="sidebar-card">
@@ -56,38 +56,44 @@
                             <strong>{{ user.get_full_name|default:user.username }}</strong>
                             <span>Admin</span>
                         </div>
+                        
+                    </div>
+                    <div class="nav-actions">
+                        <a href="{% url 'accounts:logout' %}" class="button-secondary"
+                            style="color: #DC2626; border-color: rgba(220,38,38,0.2);">Logout</a>
                     </div>
                 </div>
             </header>
 
+            {% block dashboard_content %}
             <section class="stats-grid">
                 <article class="stat-card">
                     <div>
                         <p>Total Teams</p>
                         <h3>{{ total_teams }}</h3>
                     </div>
-                    <a href="#">View all</a>
+                    <a href="{% url 'dashboard:teams' %}">View all</a>
                 </article>
                 <article class="stat-card">
                     <div>
                         <p>Total Employees</p>
                         <h3>{{ total_employees }}</h3>
                     </div>
-                    <a href="#">View all</a>
+                    <a href="{% url 'dashboard:employees' %}">View all</a>
                 </article>
                 <article class="stat-card">
                     <div>
                         <p>Active Tasks</p>
                         <h3>{{ active_tasks }}</h3>
                     </div>
-                    <a href="#">View all</a>
+                    <a href="{% url 'dashboard:tasks' %}">View all</a>
                 </article>
                 <article class="stat-card">
                     <div>
                         <p>Completed Tasks</p>
                         <h3>{{ completed_tasks }}</h3>
                     </div>
-                    <a href="#">View all</a>
+                    <a href="{% url 'dashboard:tasks' %}">View all</a>
                 </article>
             </section>
 
@@ -97,10 +103,8 @@
                         <h3>Project Progress</h3>
                         <span>Live</span>
                     </div>
-                    <div class="chart-placeholder">
-                        <div class="line-chart">
-                            <span></span><span></span><span></span><span></span>
-                        </div>
+                    <div class="chart-wrapper-fixed">
+                        <canvas id="projectProgressChart"></canvas>
                     </div>
                 </article>
 
@@ -109,11 +113,8 @@
                         <h3>Tasks by Status</h3>
                         <span>Updated</span>
                     </div>
-                    <div class="chart-placeholder donut">
-                        <div class="donut-center">
-                            <strong>{{ active_tasks }}</strong>
-                            <p>Active</p>
-                        </div>
+                    <div class="chart-wrapper-fixed">
+                        <canvas id="taskStatusChart"></canvas>
                     </div>
                 </article>
 
@@ -126,7 +127,7 @@
                         {% for activity in recent_activities %}
                         <li>
                             <div class="feed-icon">↺</div>
-                            <div>
+                            <div class="feed-content">
                                 <strong>{{ activity.description }}</strong>
                                 <p>{{ activity.created_at|timesince }} ago</p>
                             </div>
@@ -134,7 +135,7 @@
                         {% empty %}
                         <li>
                             <div class="feed-icon">✓</div>
-                            <div>
+                            <div class="feed-content">
                                 <strong>No recent activity yet</strong>
                                 <p>Your company activity will appear here</p>
                             </div>
@@ -168,8 +169,70 @@
                     </ul>
                 </article>
             </section>
+            {% endblock %}
         </main>
     </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const progressCtx = document.getElementById('projectProgressChart');
+            if (progressCtx) {
+                new Chart(progressCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                        datasets: [{
+                            label: 'Completion %',
+                            <!-- data: {{ progress_points| safe }}, -->
+                    borderColor: '#2563EB',
+                    backgroundColor: 'rgba(37, 99, 235, 0.12)',
+                    fill: true,
+                    tension: 0.35,
+                    pointBackgroundColor: '#06B6D4',
+                    pointBorderColor: '#fff',
+                    pointRadius: 4,
+                        }]
+        },
+            options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: { duration: 0 },
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, max: 100, grid: { color: 'rgba(148,163,184,0.18)' } },
+                x: { grid: { display: false } },
+            }
+        }
+                });
+            }
+
+        const statusCtx = document.getElementById('taskStatusChart');
+        if (statusCtx) {
+            new Chart(statusCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Completed', 'In Progress', 'Pending'],
+                    datasets: [{
+                        data: ['{{ tasks_status_data.completed }}', '{{ tasks_status_data.in_progress }}', '{{ tasks_status_data.pending }}'],
+        backgroundColor: ['#2563EB', '#06B6D4', '#F59E0B'],
+            borderWidth: 0,
+                        }]
+                    },
+        options: {
+            responsive: true,
+                maintainAspectRatio: false,
+                    animation: { duration: 0 },
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                        labels: { padding: 16, usePointStyle: true, color: '#475569' }
+                }
+            },
+            cutout: '70%'
+        }
+                });
+            }
+        });
+    </script>
 </body>
 
 </html>
