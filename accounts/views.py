@@ -1,8 +1,11 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import login as auth_login, logout as auth_logout
 from django.contrib.auth.decorators import login_required
+from .decorators import guest_only
 from .forms import CompanyRegistrationForm, UserLoginForm
 
+
+@guest_only
 def register(request):
     if request.method == 'POST':
         form = CompanyRegistrationForm(request.POST)
@@ -16,6 +19,7 @@ def register(request):
     return render(request, 'accounts/register.html', {'form': form})
 
 
+@guest_only
 def login(request):
     if request.method == 'POST':
         form = UserLoginForm(request, data=request.POST)
