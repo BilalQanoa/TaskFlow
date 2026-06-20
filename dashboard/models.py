@@ -1,3 +1,9 @@
-from django.db import models
+from companies.models import Team as BaseTeam
 
-# Create your models here.
+
+class Team(BaseTeam):
+    class Meta:
+        proxy = True
+        ordering = ['-created_at']
+        verbose_name = 'Team'
+        verbose_name_plural = 'Teams'

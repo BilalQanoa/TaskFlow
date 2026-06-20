@@ -1,0 +1,163 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}{{ team.name }} — Team Management{% endblock title %}
+
+{% block extra_css %}{% endblock extra_css %}
+
+{% block content %}
+
+<div class="detail-wrapper">
+    <main class="glass-panel">
+
+        <div class="team-hero-header">
+            <h1>{{ team.name }} team</h1>
+            <div class="hero-actions">
+                <a class="button-danger delete-team-trigger">Delete Team</a>
+            </div>
+        </div>
+        <div class="team-summary-grid">
+            <div class="summary-pill">
+                <strong>
+                    {% if team_leader %}
+                    {{ team_leader.get_full_name|default:team_leader.username }}
+                    {% else %}
+                    Unassigned
+                    {% endif %}
+                </strong>
+                <span>Team Leader</span>
+            </div>
+            <div class="summary-pill">
+                <strong>{{ team_members.count }}</strong>
+                <span>Team Members</span>
+            </div>
+            <div class="summary-pill">
+                <strong>{{ team.created_at|date:'M d, Y' }}</strong>
+                <span>Created On</span>
+            </div>
+        </div>
+
+        <div class="team-roster-section">
+            <h2 class="section-headline">👥 Team Members</h2>
+            <div class="roster-grid">
+                {% for membership in team_members %}
+                <div class="roster-card">
+                    <div class="avatar-sphere">
+                        {{ membership.user.get_full_name|default:membership.user.username|first|upper }}
+                    </div>
+                    <div class="profile-details">
+                        <p class="profile-name">{{ membership.user.get_full_name|default:membership.user.username }}</p>
+                        <p class="profile-sub">{{ membership.user.email }}</p>
+                        <p class="profile-role">
+                            {% if team_leader and membership.user_id == team_leader.pk %}
+                            Team Leader
+                            {% else %}
+                            {{ membership.role|default:'Member' }}
+                            {% endif %}
+                        </p>
+                    </div>
+                    <form method="POST"
+                        action="{% url 'dashboard:remove_team_member' team_id=team.pk user_id=membership.user_id %}"
+                        class="inline-action-form">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-glass-secondary">Remove</button>
+                    </form>
+                </div>
+                {% empty %}
+                <div class="empty-roster-state">
+                    No members added to this squad yet. Use the form on the right to append talent.
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </main>
+
+    <aside class="team-side-column">
+        <div class="glass-panel team-leader-panel">
+            <h2 class="section-headline">👑 Team Leader</h2>
+            <p class="section-subtitle">Assign or update the leader using corporate email. Existing users are reused
+                automatically.</p>
+
+            <div class="profile-display-card">
+                {% if team_leader %}
+                <div class="avatar-sphere">
+                    {{ team_leader.get_full_name|default:team_leader.username|first|upper }}
+                </div>
+                <div class="profile-details">
+                    <p class="profile-name">{{ team_leader.get_full_name|default:team_leader.username }}</p>
+                    <p class="profile-sub">{{ team_leader.email }}</p>
+                </div>
+                {% else %}
+                <div class="avatar-sphere empty">?</div>
+                <div class="profile-details">
+                    <p class="profile-name empty-leader-text">No Leader Assigned</p>
+                    <p class="profile-sub">Assign manager details below</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <form method="POST" action="{% url 'dashboard:assign_leader' pk=team.pk %}">
+                {% csrf_token %}
+                <div class="glass-input-group">
+                    <label for="leader_name">Leader Full Name</label>
+                    <input type="text" class="glass-control" id="leader_name" name="leader_name"
+                        placeholder="e.g. Ahmed Mohammed" required>
+                </div>
+                <div class="glass-input-group">
+                    <label for="leader_email">Leader Email</label>
+                    <input type="email" class="glass-control" id="leader_email" name="leader_email"
+                        placeholder="e.g. bilal@taskflow.ai" required>
+                </div>
+                <button type="submit" class="btn-glass-primary btn-with-spacing">
+                    ✨ Set Team Leader
+                </button>
+            </form>
+        </div>
+
+        <div class="glass-panel add-member-panel">
+            <h2 class="section-headline">➕ Add New Member</h2>
+            <p class="section-subtitle">Use member name and email to onboard talent quickly. Existing company users will
+                be added instantly.</p>
+
+            <form method="POST" action="{% url 'dashboard:add_team_member' pk=team.pk %}">
+                {% csrf_token %}
+                <div class="glass-input-group">
+                    <label for="member_name">Member Full Name</label>
+                    <input type="text" class="glass-control" id="member_name" name="member_name"
+                        placeholder="e.g. Ahmad Khaled" required>
+                </div>
+                <div class="glass-input-group">
+                    <label for="member_email">Member Email</label>
+                    <input type="email" class="glass-control" id="member_email" name="member_email"
+                        placeholder="e.g. ahmad@taskflow.ai" required>
+                </div>
+                <div class="glass-input-group">
+                    <label for="member_role">Member Role</label>
+                    <input type="text" class="glass-control" id="member_role" name="member_role"
+                        placeholder="e.g. Backend Engineer" value="" required>
+                </div>
+                <button type="submit" class="btn-glass-primary btn-with-spacing">
+                    🚀 Add Member to Squad
+                </button>
+            </form>
+        </div>
+    </aside>
+    <div class="delete-modal-overlay" id="deleteTeamModal" aria-hidden="true">
+        <div class="delete-modal-card" role="dialog" aria-modal="true" aria-labelledby="delete-team-title">
+            <h2 id="delete-team-title">Delete Team?</h2>
+            <p>This action is permanent and cannot be undone.</p>
+            <div class="delete-modal-actions">
+                <button type="button" class="button-secondary" data-close-delete-modal>Cancel</button>
+                <form method="POST" action="{% url 'dashboard:delete_team' pk=team.pk %}">
+                    {% csrf_token %}
+                    <button type="submit" class="button-danger">Yes, Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+{% block extra_js %}
+<script src="{% static 'js/teams.js' %}"></script>
+{% endblock extra_js %}

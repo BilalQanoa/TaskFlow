@@ -1,0 +1,89 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}TaskFlow AI Dashboard{% endblock title %}</title>
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+    <link rel="stylesheet" href="{% static 'css/teams.css' %}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+</head>
+
+<body>
+    <div class="dashboard-shell">
+        <aside class="sidebar">
+            <div class="brand-block">
+                <div class="brand-mark"><span></span></div>
+                <div>
+                    <h1>TaskFlow AI</h1>
+                    <p>Operations Suite</p>
+                </div>
+            </div>
+
+            <nav class="nav-links">
+                <a class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}"
+                    href="{% url 'dashboard:dashboard' %}">Dashboard</a>
+                <a class="{% if request.resolver_match.url_name == 'employees' %}active{% endif %}"
+                    href="{% url 'dashboard:employees' %}">Employees</a>
+                    <a class="{% if request.resolver_match.url_name == 'teams' or request.resolver_match.url_name == 'team_detail' %}active{% endif %}"
+                    href="{% url 'dashboard:teams' %}">Teams</a>
+                <a class="{% if request.resolver_match.url_name == 'tasks' %}active{% endif %}"
+                    href="{% url 'dashboard:tasks' %}">Tasks</a>
+                
+                <a class="{% if request.resolver_match.url_name == 'discussions' %}active{% endif %}"
+                    href="{% url 'dashboard:discussions' %}">Discussions</a>
+                <a class="{% if request.resolver_match.url_name == 'settings' %}active{% endif %}"
+                    href="{% url 'dashboard:settings' %}">Settings</a>
+                <a class="{% if request.resolver_match.url_name == 'profile' %}active{% endif %}"
+                    href="{% url 'dashboard:profile' %}">Profile</a>
+            </nav>
+
+            <div class="sidebar-card">
+                <p>Workspace</p>
+                <strong>{{ company.name }}</strong>
+                <span>Secure multi-tenant control center</span>
+            </div>
+        </aside>
+
+        <main class="main-panel">
+            <header class="topbar">
+                <div class="topbar-left">
+                    <button class="icon-button" aria-label="Open menu">☰</button>
+                    <div>
+                        <p class="eyebrow">Company Owner</p>
+                        <h2>Dashboard</h2>
+                    </div>
+                </div>
+
+                <div class="topbar-right">
+                    <button class="icon-button" aria-label="Notifications">🔔</button>
+                    <div class="profile-pill">
+                        <div class="avatar">{{ user.get_full_name|default:user.username|first|upper }}</div>
+                        <div>
+                            <strong>{{ user.get_full_name|default:user.username }}</strong>
+                            <span>Admin</span>
+                        </div>
+                    </div>
+                    <div class="nav-actions">
+                        <a href="{% url 'accounts:logout' %}" class="button-secondary logout-link">Logout</a>
+                    </div>
+                </div>
+            </header>
+
+            {% if messages %}
+            <div class="messages-container">
+                {% for message in messages %}
+                <div class="message {{ message.tags }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% block content %}{% endblock content %}
+        </main>
+    </div>
+    {% block extra_js %}{% endblock extra_js %}
+</body>
+
+</html>

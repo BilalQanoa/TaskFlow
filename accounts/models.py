@@ -10,6 +10,7 @@ class User(AbstractUser):
     ]
 
     role = models.CharField(max_length=20, choices=ROLE_CHOICES)
+    job_title = models.CharField(max_length=120, blank=True, default='')
     company = models.ForeignKey(
         'companies.Company',
         on_delete=models.SET_NULL,

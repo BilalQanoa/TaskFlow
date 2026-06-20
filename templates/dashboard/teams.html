@@ -1,0 +1,100 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}Team Management - {{ company.name }}{% endblock title %}
+
+{% block extra_css %}{% endblock extra_css %}
+
+{% block content %}
+<section class="teams-hero">
+    <div>
+        <p class="eyebrow">Team Management</p>
+        <h1>Team Management</h1>
+    </div>
+
+    <div class="hero-actions">
+        <button type="button" class="button-primary open-create-team-modal">Create Team</button>
+    </div>
+</section>
+
+{% if teams %}
+<section class="teams-grid">
+    <article class="create-team-card">
+        <button type="button" class="open-create-team-modal">+ Create New Team</button>
+    </article>
+    {% for team in teams %}
+    <a href="{% url 'dashboard:team_detail' pk=team.pk %}" class="team-card-link">
+        <article class="team-card">
+            <div class="icon-shell">★</div>
+            <div>
+                <h3>{{ team.name }}</h3>
+                <div class="team-meta">
+                    <span><strong>{{ team.members.count }}</strong> Members</span>
+                    <span><strong>{{ team.active_projects_count }}</strong> Active Projects</span>
+                </div>
+            </div>
+
+            <div class="progress-group">
+                <div class="progress-label">
+                    <span>Completion</span>
+                    <span>{{ team.progress|default:0 }}%</span>
+                </div>
+                <div class="progress-track" aria-label="Progress bar">
+                    <div class="progress-fill" data-progress="{{ team.progress|default:0 }}"></div>
+                </div>
+            </div>
+        </article>
+    </a>
+    {% endfor %}
+
+    
+</section>
+{% else %}
+<div class="empty-state">
+    <p><strong>No teams yet.</strong> Start building high-performing groups and track project velocity with elegant team
+        dashboards.</p>
+</div>
+<section class="teams-grid">
+    <article class="create-team-card">
+        <button type="button" class="open-create-team-modal">+ Create New Team</button>
+    </article>
+</section>
+{% endif %}
+
+<div class="modal-overlay" id="createTeamModal" aria-hidden="true">
+    <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="create-team-title">
+        <div class="modal-header">
+            <div>
+                <p class="eyebrow">New Team</p>
+                <h2 id="create-team-title">Create a Team</h2>
+            </div>
+            <button type="button" class="modal-close" data-close-modal aria-label="Close modal">×</button>
+        </div>
+
+        <form method="POST" action="{% url 'dashboard:create_team' %}" class="glass-form">
+            {% csrf_token %}
+            {% if form.non_field_errors %}
+            <div class="field-errors">{{ form.non_field_errors }}</div>
+            {% endif %}
+            <div class="glass-field">
+                <label for="id_name">Team Name</label>
+                {{ form.name }}
+                {% if form.name.errors %}
+                <div class="field-errors">{{ form.name.errors|striptags }}</div>
+                {% endif %}
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="button-secondary" data-close-modal>Cancel</button>
+                <button type="submit" class="button-submit">Create Team</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+{% endblock content %}
+
+
+{% block extra_js %}
+<script src="{% static 'js/teams.js' %}"></script>
+{% endblock extra_js %}

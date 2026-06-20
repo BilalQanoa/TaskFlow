@@ -1,0 +1,106 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Employees | TaskFlow AI{% endblock title %}
+
+{% block content %}
+<div class="employees-container">
+    <section class="employees-grid">
+        <article class="employees-table-card panel">
+            <div class="section-header">
+                <div>
+                    <p class="eyebrow">Employees</p>
+                    <h2>Workspace Team Directory</h2>
+                </div>
+                <span class="employee-count">{{ employees.count }} members</span>
+            </div>
+
+            <div class="employees-table-wrapper">
+                <table class="employees-table">
+                    <thead>
+                        <tr>
+                            <th>Member</th>
+                            <th>Email</th>
+                            <th>Title</th>
+                            <th>Role</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for employee in employees %}
+                        <tr>
+                            <td>
+                                <div class="employee-row">
+                                    {% with initial=employee.get_full_name|default:employee.username %}
+                                    <div class="member-avatar">{{ initial|slice:":1"|upper }}</div>
+                                    {% endwith %}
+                                    <div>
+                                        <strong>{{ employee.get_full_name|default:employee.username }}</strong>
+                                        <p>{{ employee.username }}</p>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>{{ employee.email }}</td>
+                            <td>{{ employee.job_title|default:'Member' }}</td>
+                            <td>
+                                <span
+                                    class="role-badge {% if employee.role == 'team_leader' %}role-leader{% else %}role-member{% endif %}">
+                                    {% if employee.role == 'team_leader' %}Team Leader{% else %}Team Member{% endif %}
+                                </span>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="empty-state-row">
+                                No employees have been onboarded yet. Use the form to add your first team member.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </article>
+
+        <aside class="sidebar-form-card panel">
+            <div class="section-header sidebar-header">
+                <div>
+                    <p class="eyebrow">Add New Employee</p>
+                    <h2>Invite a teammate</h2>
+                </div>
+            </div>
+
+            <form method="POST" action="" class="glass-form" novalidate>
+                {% csrf_token %}
+
+                <div class="glass-field">
+                    <label for="full_name">Full Name</label>
+                    <input id="full_name" name="full_name" type="text" class="glass-input"
+                        value="{{ form_data.full_name }}" required>
+                </div>
+
+                <div class="glass-field">
+                    <label for="email">Corporate Email</label>
+                    <input id="email" name="email" type="email" class="glass-input" value="{{ form_data.email }}"
+                        required>
+                </div>
+
+                <div class="glass-field">
+                    <label for="job_title">Job Title / Position</label>
+                    <input id="job_title" name="job_title" type="text" class="glass-input"
+                        value="{{ form_data.job_title }}" required>
+                </div>
+
+                <div class="glass-field">
+                    <label for="system_role">System Role</label>
+                    <select id="system_role" name="system_role" class="glass-control" required>
+                        <option value="member" {% if form_data.system_role == 'member' %}selected{% endif %}>Team Member
+                        </option>
+                        <option value="team_leader" {% if form_data.system_role == 'team_leader' %}selected{% endif %}>
+                            Team Leader</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn-glass-primary btn-with-spacing">Add Employee</button>
+            </form>
+        </aside>
+    </section>
+</div>
+{% endblock content %}

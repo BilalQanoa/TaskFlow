@@ -22,13 +22,20 @@
             </div>
 
             <nav class="nav-links">
-                <a class="active" href="{% url 'dashboard:dashboard' %}">Dashboard</a>
-                <a href="{% url 'dashboard:teams' %}">Teams</a>
-                <a href="{% url 'dashboard:tasks' %}">Tasks</a>
-                <a href="{% url 'dashboard:employees' %}">Employees</a>
-                <a href="{% url 'dashboard:discussions' %}">Discussions</a>
-                <a href="{% url 'dashboard:settings' %}">Settings</a>
-                <a href="{% url 'dashboard:profile' %}">Profile</a>
+                <a class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}"
+                    href="{% url 'dashboard:dashboard' %}">Dashboard</a>
+                <a class="{% if request.resolver_match.url_name == 'employees' %}active{% endif %}"
+                    href="{% url 'dashboard:employees' %}">Employees</a>
+                <a class="{% if request.resolver_match.url_name == 'teams' %}active{% endif %}"
+                    href="{% url 'dashboard:teams' %}">Teams</a>
+                <a class="{% if request.resolver_match.url_name == 'tasks' %}active{% endif %}"
+                    href="{% url 'dashboard:tasks' %}">Tasks</a>
+                <a class="{% if request.resolver_match.url_name == 'discussions' %}active{% endif %}"
+                    href="{% url 'dashboard:discussions' %}">Discussions</a>
+                <a class="{% if request.resolver_match.url_name == 'settings' %}active{% endif %}"
+                    href="{% url 'dashboard:settings' %}">Settings</a>
+                <a class="{% if request.resolver_match.url_name == 'profile' %}active{% endif %}"
+                    href="{% url 'dashboard:profile' %}">Profile</a>
             </nav>
 
             <div class="sidebar-card">
@@ -56,11 +63,10 @@
                             <strong>{{ user.get_full_name|default:user.username }}</strong>
                             <span>Admin</span>
                         </div>
-                        
+
                     </div>
                     <div class="nav-actions">
-                        <a href="{% url 'accounts:logout' %}" class="button-secondary"
-                            style="color: #DC2626; border-color: rgba(220,38,38,0.2);">Logout</a>
+                        <a href="{% url 'accounts:logout' %}" class="button-secondary logout-link">Logout</a>
                     </div>
                 </div>
             </header>
@@ -172,67 +178,7 @@
             {% endblock %}
         </main>
     </div>
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const progressCtx = document.getElementById('projectProgressChart');
-            if (progressCtx) {
-                new Chart(progressCtx, {
-                    type: 'line',
-                    data: {
-                        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-                        datasets: [{
-                            label: 'Completion %',
-                            <!-- data: {{ progress_points| safe }}, -->
-                    borderColor: '#2563EB',
-                    backgroundColor: 'rgba(37, 99, 235, 0.12)',
-                    fill: true,
-                    tension: 0.35,
-                    pointBackgroundColor: '#06B6D4',
-                    pointBorderColor: '#fff',
-                    pointRadius: 4,
-                        }]
-        },
-            options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            animation: { duration: 0 },
-            plugins: { legend: { display: false } },
-            scales: {
-                y: { beginAtZero: true, max: 100, grid: { color: 'rgba(148,163,184,0.18)' } },
-                x: { grid: { display: false } },
-            }
-        }
-                });
-            }
-
-        const statusCtx = document.getElementById('taskStatusChart');
-        if (statusCtx) {
-            new Chart(statusCtx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Completed', 'In Progress', 'Pending'],
-                    datasets: [{
-                        data: ['{{ tasks_status_data.completed }}', '{{ tasks_status_data.in_progress }}', '{{ tasks_status_data.pending }}'],
-        backgroundColor: ['#2563EB', '#06B6D4', '#F59E0B'],
-            borderWidth: 0,
-                        }]
-                    },
-        options: {
-            responsive: true,
-                maintainAspectRatio: false,
-                    animation: { duration: 0 },
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                        labels: { padding: 16, usePointStyle: true, color: '#475569' }
-                }
-            },
-            cutout: '70%'
-        }
-                });
-            }
-        });
-    </script>
+    <script src="{% static 'js/dashboard.js' %}"></script>
 </body>
 
 </html>

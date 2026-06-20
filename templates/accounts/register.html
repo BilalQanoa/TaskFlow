@@ -26,7 +26,7 @@ Register - TaskFlow AI
                     <p>Create your company account and set up your first polished workspace.</p>
                 </div>
 
-                <form method="POST" action="{% url 'accounts:register' %}" autocomplete="off">
+                <form method="POST" autocomplete="off">
                     {% csrf_token %}
 
                     {% if form.non_field_errors %}
@@ -37,78 +37,36 @@ Register - TaskFlow AI
 
                     <div class="form-group">
                         <label>Username</label>
-                        <input type="text" name="username" class="form-control" placeholder="e.g., bilal_dev"
-                            value="{{ form.username.value|default_if_none:'' }}" required>
+                        <input type="text" name="username" class="form-control" placeholder="e.g., bilal_dev" required>
                         {{ form.username.errors }}
                     </div>
 
                     <div class="form-group">
                         <label>Email Address</label>
-                        <input type="email" name="email" class="form-control" placeholder="name@company.com"
-                            value="{{ form.email.value|default_if_none:'' }}" required>
+                        <input type="email" name="email" class="form-control" placeholder="name@company.com" required>
                         {{ form.email.errors }}
                     </div>
 
                     <div class="form-group">
                         <label>Company Name</label>
                         <input type="text" name="company_name" class="form-control"
-                            placeholder="e.g., Solo Software Corp"
-                            value="{{ form.company_name.value|default_if_none:'' }}" required>
+                            placeholder="e.g., Solo Software Corp" required>
                         {{ form.company_name.errors }}
                     </div>
 
                     <div class="form-group">
                         <label>Password</label>
-                        <div class="password-input-wrap">
-                            <input type="password" name="password1" class="form-control" placeholder="••••••••"
-                                required>
-                            <button type="button" class="password-toggle" aria-label="Show password"
-                                data-target="password1">
-                                <svg class="eye-open" viewBox="0 0 24 24" fill="none">
-                                    <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z" stroke="currentColor"
-                                        stroke-width="1.8" />
-                                    <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.8" />
-                                </svg>
-                                <svg class="eye-slash" viewBox="0 0 24 24" fill="none">
-                                    <path d="M3 3l18 18M10 10a3 3 0 0 0 4 4" stroke="currentColor" stroke-width="1.8"
-                                        stroke-linecap="round" />
-                                    <path d="M9 5.2A11.4 11.4 0 0 1 12 5c6.5 0 10 7 10 7a19.3 19.3 0 0 1-3.3 4.4"
-                                        stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
-                                    <path d="M6.4 8.4A16.8 16.8 0 0 0 2 12s3.5 6 10 6a11.4 11.4 0 0 0 2.2-.2"
-                                        stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
-                                </svg>
-                            </button>
-                        </div>
+                        <input type="password" name="password1" class="form-control" placeholder="••••••••" required>
                         {{ form.password1.errors }}
                     </div>
 
                     <div class="form-group">
                         <label>Confirm Password</label>
-                        <div class="password-input-wrap">
-                            <input type="password" name="password2" class="form-control" placeholder="••••••••"
-                                required>
-                            <button type="button" class="password-toggle" aria-label="Show password"
-                                data-target="password2">
-                                <svg class="eye-open" viewBox="0 0 24 24" fill="none">
-                                    <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z" stroke="currentColor"
-                                        stroke-width="1.8" />
-                                    <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.8" />
-                                </svg>
-                                <svg class="eye-slash" viewBox="0 0 24 24" fill="none">
-                                    <path d="M3 3l18 18M10 10a3 3 0 0 0 4 4" stroke="currentColor" stroke-width="1.8"
-                                        stroke-linecap="round" />
-                                    <path d="M9 5.2A11.4 11.4 0 0 1 12 5c6.5 0 10 7 10 7a19.3 19.3 0 0 1-3.3 4.4"
-                                        stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
-                                    <path d="M6.4 8.4A16.8 16.8 0 0 0 2 12s3.5 6 10 6a11.4 11.4 0 0 0 2.2-.2"
-                                        stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
-                                </svg>
-                            </button>
-                        </div>
+                        <input type="password" name="password2" class="form-control" placeholder="••••••••" required>
                         {{ form.password2.errors }}
                     </div>
 
-                    <button type="submit" class="hero-cta" style="width: 100%; margin-top: 12px;">Register & Create
-                        Company</button>
+                    <button type="submit" class="hero-cta auth-submit">Register & Create Company</button>
                 </form>
 
                 <div class="auth-footer">
@@ -117,66 +75,20 @@ Register - TaskFlow AI
             </div>
 
             <div class="auth-side">
-                <article class="auth-side-card">
-                    <span class="auth-side-badge auth-side-badge--cyan">Studio</span>
-                    <h3>The operating system for modern teams</h3>
-                    <p>Consolidate your entire workflow, resource allocation, and timeline tracking into a single
-                        unified workspace.</p>
-                </article>
-
-                <article class="auth-side-card">
-                    <span class="auth-side-badge auth-side-badge--blue">Flow</span>
-                    <h3>Engineered for execution</h3>
-                    <ul class="auth-feature-list">
-                        <li>
-                            <span class="feature-icon" aria-hidden="true">
-                                <svg viewBox="0 0 24 24" fill="none">
-                                    <path d="M5 12.5L9.5 17 19 7" stroke="currentColor" stroke-linecap="round"
-                                        stroke-linejoin="round" />
-                                </svg>
-                            </span>
-                            <span>Instant workspace provisioning</span>
-                        </li>
-                        <li>
-                            <span class="feature-icon" aria-hidden="true">
-                                <svg viewBox="0 0 24 24" fill="none">
-                                    <path d="M5 12.5L9.5 17 19 7" stroke="currentColor" stroke-linecap="round"
-                                        stroke-linejoin="round" />
-                                </svg>
-                            </span>
-                            <span>Granular role-based permissions</span>
-                        </li>
-                        <li>
-                            <span class="feature-icon" aria-hidden="true">
-                                <svg viewBox="0 0 24 24" fill="none">
-                                    <path d="M5 12.5L9.5 17 19 7" stroke="currentColor" stroke-linecap="round"
-                                        stroke-linejoin="round" />
-                                </svg>
-                            </span>
-                            <span>Production-ready pipeline templates</span>
-                        </li>
+                <div class="auth-side-card">
+                    <h3>Built for modern teams</h3>
+                    <p>Organize roles, goals, and workstreams from one elevated workspace.</p>
+                </div>
+                <div class="auth-side-card">
+                    <h3>What you get</h3>
+                    <ul>
+                        <li>Company profile and admin access</li>
+                        <li>Clean task and project views</li>
+                        <li>AI-ready workflow foundation</li>
                     </ul>
-                </article>
+                </div>
             </div>
         </div>
     </main>
 </div>
 {% endblock content %}
-
-{% block extra_js %}
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        document.querySelectorAll('.password-toggle').forEach((button) => {
-            button.addEventListener('click', () => {
-                const input = document.querySelector(`input[name="${button.dataset.target}"]`);
-                if (!input) return;
-
-                const isPassword = input.type === 'password';
-                input.type = isPassword ? 'text' : 'password';
-                button.classList.toggle('is-visible', isPassword);
-                button.setAttribute('aria-label', isPassword ? 'Hide password' : 'Show password');
-            });
-        });
-    });
-</script>
-{% endblock extra_js %}

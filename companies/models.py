@@ -1,5 +1,6 @@
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.utils import timezone
 
 from accounts.models import User
 
@@ -39,7 +40,12 @@ class Team(models.Model):
         blank=True,
         related_name='led_teams',
     )
-    members = models.ManyToManyField(User, related_name='teams', blank=True)
+    members = models.ManyToManyField(
+        User,
+        through='TeamMembership',
+        related_name='teams',
+        blank=True,
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -53,9 +59,34 @@ class Team(models.Model):
         if self.team_leader and self.company_id and self.team_leader.company_id != self.company_id:
             raise ValidationError({'team_leader': 'The team leader must belong to the same company.'})
 
+        invalid_members = []
+        if self.pk:
+            invalid_members = [
+                membership.user
+                for membership in self.memberships.all()
+                if self.company_id and membership.user.company_id != self.company_id
+            ]
+        if invalid_members:
+            invalid_names = ', '.join([member.get_full_name() or member.username for member in invalid_members])
+            raise ValidationError({'members': f'The following members must belong to the same company as the team: {invalid_names}.'})
+
     def save(self, *args, **kwargs):
         self.full_clean()
         return super().save(*args, **kwargs)
+
+
+class TeamMembership(models.Model):
+    team = models.ForeignKey(Team, on_delete=models.CASCADE, related_name='memberships')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='team_memberships')
+    role = models.CharField(max_length=120, blank=True, default='Member')
+    joined_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        unique_together = ('team', 'user')
+        ordering = ['joined_at', 'user__first_name', 'user__last_name']
+
+    def __str__(self):
+        return f'{self.user} — {self.role or "Member"} @ {self.team}'
 
 
 class Task(models.Model):
