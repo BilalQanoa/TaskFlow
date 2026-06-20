@@ -1,0 +1,313 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Settings | TaskFlow AI{% endblock title %}
+
+{% block messages %}{% endblock messages %}
+
+{% block content %}
+<div class="settings-container">
+    {% if messages %}
+    <div class="toast-notifications" id="toastNotifications" aria-live="polite">
+        {% for message in messages %}
+        <div class="toast-alert toast-alert--{% if 'success' in message.tags %}success{% elif 'error' in message.tags %}error{% elif 'warning' in message.tags %}warning{% else %}info{% endif %}"
+            role="alert">
+            <span class="toast-alert__icon" aria-hidden="true">
+                {% if 'success' in message.tags %}
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 6L9 17l-5-5"></path>
+                </svg>
+                {% elif 'error' in message.tags or 'warning' in message.tags %}
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+                {% else %}
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="16" x2="12" y2="12"></line>
+                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                </svg>
+                {% endif %}
+            </span>
+            <span class="toast-alert__text">{{ message }}</span>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="settings-shell">
+        <nav class="settings-sidebar" aria-label="Settings navigation">
+            <button type="button" class="settings-tab-btn{% if active_tab == 'security' %} active{% endif %}"
+                data-tab-target="security">Account Security</button>
+            
+            {% if request.user.role == 'company' or request.user.is_superuser %}
+            <button type="button" class="settings-tab-btn{% if active_tab == 'workspace' %} active{% endif %}"
+                data-tab-target="workspace">Workspace Settings</button>
+            {% endif %}
+            <button type="button" class="settings-tab-btn{% if active_tab == 'theme' %} active{% endif %}"
+                data-tab-target="theme">Theme Preferences</button>
+        </nav>
+
+        <div class="settings-content">
+            <section id="settings-panel-security"
+                class="settings-panel panel{% if active_tab == 'security' %} active{% endif %}" data-tab-panel="security">
+                <div class="settings-panel-header">
+                    <h3>Account Security</h3>
+                    <p>Update your credentials with secure, encrypted password handling.</p>
+                </div>
+
+                <form method="POST" action="{% url 'dashboard:settings' %}" class="settings-form glass-form" novalidate>
+                    {% csrf_token %}
+                    <input type="hidden" name="form_type" value="change_password">
+
+                    {% if password_form.non_field_errors %}
+                    <div class="settings-form-errors">
+                        {{ password_form.non_field_errors }}
+                    </div>
+                    {% endif %}
+
+                    <div class="glass-field">
+                        <label for="{{ password_form.old_password.id_for_label }}">{{ password_form.old_password.label }}</label>
+                        {{ password_form.old_password }}
+                        {% if password_form.old_password.errors %}
+                        <div class="settings-form-errors">{{ password_form.old_password.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="glass-field">
+                        <label for="{{ password_form.new_password1.id_for_label }}">{{ password_form.new_password1.label }}</label>
+                        {{ password_form.new_password1 }}
+                        {% if password_form.new_password1.errors %}
+                        <div class="settings-form-errors">{{ password_form.new_password1.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="glass-field">
+                        <label for="{{ password_form.new_password2.id_for_label }}">{{ password_form.new_password2.label }}</label>
+                        {{ password_form.new_password2 }}
+                        {% if password_form.new_password2.errors %}
+                        <div class="settings-form-errors">{{ password_form.new_password2.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <button type="submit" class="btn-glass-primary settings-submit-btn">Update Password</button>
+                </form>
+            </section>
+
+            <section id="settings-panel-profile"
+                class="settings-panel panel{% if active_tab == 'profile' %} active{% endif %}" data-tab-panel="profile">
+                <div class="settings-panel-header">
+                    <h3>Profile Information</h3>
+                    <p>Keep your identity and corporate contact details current across the workspace.</p>
+                </div>
+
+                <form method="POST" action="{% url 'dashboard:settings' %}" class="settings-form glass-form" novalidate>
+                    {% csrf_token %}
+                    <input type="hidden" name="form_type" value="update_profile">
+
+                    {% if profile_form.non_field_errors %}
+                    <div class="settings-form-errors">
+                        {{ profile_form.non_field_errors }}
+                    </div>
+                    {% endif %}
+
+                    <div class="glass-field">
+                        <label for="{{ profile_form.full_name.id_for_label }}">{{ profile_form.full_name.label }}</label>
+                        {{ profile_form.full_name }}
+                        {% if profile_form.full_name.errors %}
+                        <div class="settings-form-errors">{{ profile_form.full_name.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="glass-field">
+                        <label for="{{ profile_form.email.id_for_label }}">{{ profile_form.email.label }}</label>
+                        {{ profile_form.email }}
+                        {% if profile_form.email.errors %}
+                        <div class="settings-form-errors">{{ profile_form.email.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="glass-field">
+                        <label for="{{ profile_form.job_title.id_for_label }}">{{ profile_form.job_title.label }}</label>
+                        {{ profile_form.job_title }}
+                        {% if profile_form.job_title.errors %}
+                        <div class="settings-form-errors">{{ profile_form.job_title.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <button type="submit" class="btn-glass-primary settings-submit-btn">Save Profile</button>
+                </form>
+            </section>
+
+            {% if request.user.role == 'company' or request.user.is_superuser %}
+            <section id="settings-panel-workspace"
+                class="settings-panel panel{% if active_tab == 'workspace' %} active{% endif %}" data-tab-panel="workspace">
+                <div class="settings-panel-header">
+                    <h3>Workspace Settings</h3>
+                    <p>Configure your corporate workspace identity and branding assets.</p>
+                </div>
+
+                {% if workspace_form %}
+                <form method="POST" action="{% url 'dashboard:settings' %}" enctype="multipart/form-data"
+                    class="settings-form glass-form" novalidate>
+                    {% csrf_token %}
+                    <input type="hidden" name="form_type" value="update_workspace">
+
+                    {% if workspace_form.non_field_errors %}
+                    <div class="settings-form-errors">
+                        {{ workspace_form.non_field_errors }}
+                    </div>
+                    {% endif %}
+
+                    <div class="glass-field">
+                        <label for="{{ workspace_form.name.id_for_label }}">{{ workspace_form.name.label }}</label>
+                        {{ workspace_form.name }}
+                        {% if workspace_form.name.errors %}
+                        <div class="settings-form-errors">{{ workspace_form.name.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="glass-field">
+                        <label for="{{ workspace_form.logo.id_for_label }}">{{ workspace_form.logo.label }}</label>
+                        <div class="logo-upload-preview">
+                            {% if company.logo %}
+                            <img src="{{ company.logo.url }}" alt="{{ company.name }} logo">
+                            {% else %}
+                            <div class="logo-upload-placeholder">LOGO</div>
+                            {% endif %}
+                            <div>
+                                <p class="profile-name">{{ company.name|default:'Workspace' }}</p>
+                                <p class="profile-sub">Upload a square PNG, JPG, or SVG brand mark.</p>
+                            </div>
+                        </div>
+                        {{ workspace_form.logo }}
+                        {% if workspace_form.logo.errors %}
+                        <div class="settings-form-errors">{{ workspace_form.logo.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <button type="submit" class="btn-glass-primary settings-submit-btn">Save Workspace</button>
+                </form>
+                {% else %}
+                <p class="profile-sub">No workspace is currently linked to your account.</p>
+                {% endif %}
+            </section>
+            {% endif %}
+
+            <section id="settings-panel-theme"
+                class="settings-panel panel{% if active_tab == 'theme' %} active{% endif %}" data-tab-panel="theme">
+                <div class="settings-panel-header">
+                    <h3>Theme Preferences</h3>
+                    <p>Choose how TaskFlow AI is presented across your control center experience.</p>
+                </div>
+
+                <div class="theme-options" role="radiogroup" aria-label="Theme preference">
+                    <label class="theme-option" data-theme-value="light">
+                        <span class="theme-option-copy">
+                            <strong>Light Mode</strong>
+                            <span>Bright glass panels with crisp contrast for daytime operations.</span>
+                        </span>
+                        <span class="theme-toggle" aria-hidden="true"></span>
+                        <input type="radio" name="theme_preference" value="light" class="visually-hidden">
+                    </label>
+
+                    <label class="theme-option" data-theme-value="dark">
+                        <span class="theme-option-copy">
+                            <strong>Dark Mode</strong>
+                            <span>Dimmed surfaces optimized for low-light focus sessions.</span>
+                        </span>
+                        <span class="theme-toggle" aria-hidden="true"></span>
+                        <input type="radio" name="theme_preference" value="dark" class="visually-hidden">
+                    </label>
+
+                    <label class="theme-option" data-theme-value="system">
+                        <span class="theme-option-copy">
+                            <strong>System Default</strong>
+                            <span>Automatically follow your device appearance settings.</span>
+                        </span>
+                        <span class="theme-toggle" aria-hidden="true"></span>
+                        <input type="radio" name="theme_preference" value="system" class="visually-hidden">
+                    </label>
+                </div>
+            </section>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const toasts = document.querySelectorAll('.toast-alert');
+        toasts.forEach(function (toast) {
+            setTimeout(function () {
+                toast.classList.add('toast-alert--dismiss');
+                setTimeout(function () {
+                    toast.remove();
+                }, 320);
+            }, 3000);
+        });
+
+        const tabButtons = document.querySelectorAll('.settings-tab-btn');
+        const tabPanels = document.querySelectorAll('.settings-panel');
+
+        const activateTab = function (tabName) {
+            tabButtons.forEach(function (button) {
+                button.classList.toggle('active', button.dataset.tabTarget === tabName);
+            });
+
+            tabPanels.forEach(function (panel) {
+                const isActive = panel.dataset.tabPanel === tabName;
+                panel.classList.toggle('active', isActive);
+            });
+        };
+
+        tabButtons.forEach(function (button) {
+            button.addEventListener('click', function () {
+                activateTab(button.dataset.tabTarget);
+            });
+        });
+
+        const themeOptions = document.querySelectorAll('.theme-option');
+        const storedTheme = localStorage.getItem('taskflow_theme') || 'system';
+
+        const applyThemeSelection = function (value) {
+            themeOptions.forEach(function (option) {
+                const selected = option.dataset.themeValue === value;
+                option.classList.toggle('selected', selected);
+                const input = option.querySelector('input[type="radio"]');
+                if (input) {
+                    input.checked = selected;
+                }
+            });
+            document.documentElement.dataset.theme = value;
+            localStorage.setItem('taskflow_theme', value);
+        };
+
+        themeOptions.forEach(function (option) {
+            option.addEventListener('click', function () {
+                applyThemeSelection(option.dataset.themeValue);
+            });
+        });
+
+        applyThemeSelection(storedTheme);
+    });
+</script>
+<style>
+    .visually-hidden {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+    }
+</style>
+{% endblock extra_js %}

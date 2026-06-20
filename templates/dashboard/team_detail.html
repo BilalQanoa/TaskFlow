@@ -3,7 +3,56 @@
 
 {% block title %}{{ team.name }} — Team Management{% endblock title %}
 
-{% block extra_css %}{% endblock extra_css %}
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css">
+<style>
+    .searchable-select-wrap .select2-container--default .select2-selection--single {
+        height: 48px;
+        border-radius: 14px;
+        border: 1px solid rgba(148, 163, 184, 0.28);
+        background: rgba(255, 255, 255, 0.92);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+        display: flex;
+        align-items: center;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .searchable-select-wrap .select2-container--default .select2-selection--single .select2-selection__rendered {
+        line-height: 46px;
+        padding-left: 14px;
+        color: var(--text);
+        font-size: 0.95rem;
+    }
+
+    .searchable-select-wrap .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: 46px;
+        right: 10px;
+    }
+
+    .searchable-select-wrap .select2-container--default.select2-container--focus .select2-selection--single,
+    .searchable-select-wrap .select2-container--default.select2-container--open .select2-selection--single {
+        border-color: rgba(37, 99, 235, 0.45);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+    }
+
+    .select2-container--default .select2-results__option--highlighted.select2-results__option--selectable {
+        background: linear-gradient(135deg, rgba(37, 99, 235, 0.92), rgba(6, 182, 212, 0.88));
+    }
+
+    .select2-dropdown {
+        border-radius: 14px;
+        border: 1px solid rgba(148, 163, 184, 0.22);
+        box-shadow: 0 18px 48px rgba(15, 23, 42, 0.14);
+        overflow: hidden;
+    }
+
+    .select2-container--default .select2-search--dropdown .select2-search__field {
+        border-radius: 10px;
+        border: 1px solid rgba(148, 163, 184, 0.28);
+        padding: 8px 12px;
+    }
+</style>
+{% endblock extra_css %}
 
 {% block content %}
 
@@ -75,8 +124,7 @@
     <aside class="team-side-column">
         <div class="glass-panel team-leader-panel">
             <h2 class="section-headline">👑 Team Leader</h2>
-            <p class="section-subtitle">Assign or update the leader using corporate email. Existing users are reused
-                automatically.</p>
+            <p class="section-subtitle">Search and select an existing teammate to appoint as squad leader.</p>
 
             <div class="profile-display-card">
                 {% if team_leader %}
@@ -91,22 +139,23 @@
                 <div class="avatar-sphere empty">?</div>
                 <div class="profile-details">
                     <p class="profile-name empty-leader-text">No Leader Assigned</p>
-                    <p class="profile-sub">Assign manager details below</p>
+                    <p class="profile-sub">Select a leader from your workspace below</p>
                 </div>
                 {% endif %}
             </div>
 
             <form method="POST" action="{% url 'dashboard:assign_leader' pk=team.pk %}">
                 {% csrf_token %}
-                <div class="glass-input-group">
-                    <label for="leader_name">Leader Full Name</label>
-                    <input type="text" class="glass-control" id="leader_name" name="leader_name"
-                        placeholder="e.g. Ahmed Mohammed" required>
-                </div>
-                <div class="glass-input-group">
-                    <label for="leader_email">Leader Email</label>
-                    <input type="email" class="glass-control" id="leader_email" name="leader_email"
-                        placeholder="e.g. bilal@taskflow.ai" required>
+                <div class="glass-input-group searchable-select-wrap">
+                    <label for="leaderSelect">Select Team Leader</label>
+                    <select id="leaderSelect" name="leader_id" class="glass-control searchable-select" required>
+                        <option value="">Select a teammate...</option>
+                        {% for employee in available_leaders %}
+                        {% if employee.role == 'team_leader' %}
+                        <option value="{{ employee.id }}">{{ employee.get_full_name|default:employee.username }} : {{ employee.job_title|default:'Member' }}</option>
+                        {% endif %}
+                        {% endfor %}
+                    </select>
                 </div>
                 <button type="submit" class="btn-glass-primary btn-with-spacing">
                     ✨ Set Team Leader
@@ -116,25 +165,18 @@
 
         <div class="glass-panel add-member-panel">
             <h2 class="section-headline">➕ Add New Member</h2>
-            <p class="section-subtitle">Use member name and email to onboard talent quickly. Existing company users will
-                be added instantly.</p>
+            <p class="section-subtitle">Search your workspace directory and add an existing employee to this squad.</p>
 
             <form method="POST" action="{% url 'dashboard:add_team_member' pk=team.pk %}">
                 {% csrf_token %}
-                <div class="glass-input-group">
-                    <label for="member_name">Member Full Name</label>
-                    <input type="text" class="glass-control" id="member_name" name="member_name"
-                        placeholder="e.g. Ahmad Khaled" required>
-                </div>
-                <div class="glass-input-group">
-                    <label for="member_email">Member Email</label>
-                    <input type="email" class="glass-control" id="member_email" name="member_email"
-                        placeholder="e.g. ahmad@taskflow.ai" required>
-                </div>
-                <div class="glass-input-group">
-                    <label for="member_role">Member Role</label>
-                    <input type="text" class="glass-control" id="member_role" name="member_role"
-                        placeholder="e.g. Backend Engineer" value="" required>
+                <div class="glass-input-group searchable-select-wrap">
+                    <label for="memberSelect">Select Teammate</label>
+                    <select id="memberSelect" name="member_id" class="glass-control searchable-select" required>
+                        <option value="">Select a teammate...</option>
+                        {% for employee in available_employees %}
+                        <option value="{{ employee.id }}">{{ employee.get_full_name|default:employee.username }} : {{ employee.job_title|default:'Member' }}</option>
+                        {% endfor %}
+                    </select>
                 </div>
                 <button type="submit" class="btn-glass-primary btn-with-spacing">
                     🚀 Add Member to Squad
@@ -159,5 +201,16 @@
 {% endblock content %}
 
 {% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script src="{% static 'js/teams.js' %}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        $('.searchable-select').select2({
+            placeholder: 'Search teammate by name or title...',
+            allowClear: true,
+            width: '100%'
+        });
+    });
+</script>
 {% endblock extra_js %}

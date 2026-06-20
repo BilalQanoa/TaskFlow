@@ -51,18 +51,24 @@ class TeamsListViewTenantIsolationTests(TestCase):
 
     def test_add_team_member_creates_membership_with_role(self):
         self.client.force_login(self.company_a.owner)
+        candidate = self.User.objects.create_user(
+            username='ada',
+            email='ada@example.com',
+            password='password123',
+            role='member',
+            company=self.company_a,
+            job_title='Backend Engineer',
+        )
         response = self.client.post(
             reverse('dashboard:add_team_member', args=[self.team_a.pk]),
             {
-                'member_name': 'Ada Lovelace',
-                'member_email': 'ada@example.com',
-                'member_role': 'Backend Engineer',
+                'member_id': candidate.pk,
             },
             follow=True,
         )
 
         self.assertEqual(response.status_code, 200)
-        membership = TeamMembership.objects.get(team=self.team_a, user__email='ada@example.com')
+        membership = TeamMembership.objects.get(team=self.team_a, user=candidate)
         self.assertEqual(membership.role, 'Backend Engineer')
 
     def test_remove_team_member_deletes_membership(self):
@@ -99,8 +105,7 @@ class TeamsListViewTenantIsolationTests(TestCase):
         response = self.client.post(
             reverse('dashboard:assign_leader', args=[self.team_a.pk]),
             {
-                'leader_name': 'Jane Doe',
-                'leader_email': 'jane@example.com',
+                'leader_id': self.user_a.pk,
             },
             follow=True,
         )

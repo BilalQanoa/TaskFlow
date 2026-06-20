@@ -15,7 +15,8 @@ urlpatterns = [
     path('teams/<int:team_id>/remove-member/<int:user_id>/', views.remove_team_member, name='remove_team_member'),
     path('tasks/', views.tasks_page, name='tasks'),
     path('employees/', views.employees_page, name='employees'),
+    path('employees/<int:employee_id>/delete/', views.delete_employee, name='delete_employee'),
     path('discussions/', views.discussions_page, name='discussions'),
-    path('settings/', views.settings_page, name='settings'),
+    path('settings/', views.settings_view, name='settings'),
     path('profile/', views.profile_page, name='profile'),
 ]

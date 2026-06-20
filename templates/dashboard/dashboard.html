@@ -34,8 +34,7 @@
                     href="{% url 'dashboard:discussions' %}">Discussions</a>
                 <a class="{% if request.resolver_match.url_name == 'settings' %}active{% endif %}"
                     href="{% url 'dashboard:settings' %}">Settings</a>
-                <a class="{% if request.resolver_match.url_name == 'profile' %}active{% endif %}"
-                    href="{% url 'dashboard:profile' %}">Profile</a>
+                
             </nav>
 
             <div class="sidebar-card">
