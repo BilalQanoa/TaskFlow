@@ -91,7 +91,6 @@ class TeamMembership(models.Model):
 
 class Task(models.Model):
     STATUS_CHOICES = [
-        ('pending', 'Pending'),
         ('in_progress', 'In Progress'),
         ('completed', 'Completed'),
     ]
@@ -102,9 +101,17 @@ class Task(models.Model):
     ]
 
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='tasks')
+    team = models.ForeignKey(
+        Team,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='tasks',
+    )
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='in_progress')
+    progress_percentage = models.PositiveSmallIntegerField(default=0)
     priority = models.CharField(max_length=20, choices=PRIORITY_CHOICES, default='medium')
     due_date = models.DateField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -114,6 +121,13 @@ class Task(models.Model):
 
     def __str__(self):
         return self.title
+
+    def clean(self):
+        super().clean()
+        if self.progress_percentage < 0 or self.progress_percentage > 100:
+            raise ValidationError({'progress_percentage': 'Progress must be between 0 and 100.'})
+        if self.team_id and self.company_id and self.team.company_id != self.company_id:
+            raise ValidationError({'team': 'The assigned team must belong to the same company.'})
 
 
 class ActivityLog(models.Model):

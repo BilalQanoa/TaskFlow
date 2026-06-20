@@ -168,12 +168,13 @@ def admin_dashboard(request):
     active_tasks = all_tasks.exclude(status='completed')
     completed_tasks = all_tasks.filter(status='completed')
     recent_activities = ActivityLog.objects.filter(company=company)[:4]
-    upcoming_deadlines = all_tasks.filter(due_date__gte=date.today()).order_by('due_date', 'priority')[:4]
+    upcoming_deadlines = (
+        all_tasks.exclude(status='completed')
+        .filter(due_date__isnull=False)
+        .select_related('team', 'team__team_leader')
+        .order_by('due_date')[:5]
+    )
 
-    for task in upcoming_deadlines:
-        task.priority_label = task.get_priority_display()
-
-    pending_count = all_tasks.filter(status='pending').count()
     in_progress_count = all_tasks.filter(status='in_progress').count()
     completed_count = completed_tasks.count()
 
@@ -189,7 +190,6 @@ def admin_dashboard(request):
         'tasks_status_data': {
             'completed': completed_count,
             'in_progress': in_progress_count,
-            'pending': pending_count,
         },
         'progress_points': [40, 58, 70, 82, 88, 96],
     }
@@ -210,8 +210,72 @@ def dashboard_placeholder(request, page_name):
 
 
 @login_required(login_url='accounts:login')
-def tasks_page(request):
-    return dashboard_placeholder(request, 'Tasks')
+@transaction.atomic
+def tasks_view(request):
+    company = getattr(request.user, 'owned_company', None) or getattr(request.user, 'company', None)
+    if not company:
+        return redirect('accounts:profile')
+
+    form_data = {
+        'title': '',
+        'team_id': '',
+        'due_date': '',
+    }
+    show_add_modal = False
+
+    if request.method == 'POST':
+        title = request.POST.get('title', '').strip()
+        team_id = request.POST.get('team_id', '').strip()
+        due_date_raw = request.POST.get('due_date', '').strip()
+
+        form_data.update({
+            'title': title,
+            'team_id': team_id,
+            'due_date': due_date_raw,
+        })
+
+        if not title or not team_id or not due_date_raw:
+            messages.error(request, 'Validation Error: Please complete all task fields before submitting.')
+            show_add_modal = True
+        else:
+            team = Team.objects.filter(company=company, pk=team_id).first()
+            if not team:
+                messages.error(request, 'Operation Failed: The selected team was not found in your workspace.')
+                show_add_modal = True
+            else:
+                try:
+                    due_date = date.fromisoformat(due_date_raw)
+                except ValueError:
+                    messages.error(request, 'Validation Error: Please provide a valid due date.')
+                    show_add_modal = True
+                else:
+                    Task.objects.create(
+                        company=company,
+                        title=title,
+                        team=team,
+                        due_date=due_date,
+                        status='in_progress',
+                        progress_percentage=0,
+                    )
+                    messages.success(request, 'Task assigned successfully!')
+                    return redirect('dashboard:tasks')
+
+    tasks = (
+        Task.objects.filter(company=company)
+        .select_related('team', 'team__team_leader')
+        .order_by('due_date')
+    )
+    teams = Team.objects.filter(company=company).select_related('team_leader').order_by('name')
+
+    return render(request, 'dashboard/tasks.html', {
+        'company': company,
+        'user': request.user,
+        'tasks': tasks,
+        'teams': teams,
+        'form_data': form_data,
+        'today': date.today(),
+        'show_add_modal': show_add_modal,
+    })
 
 
 @login_required(login_url='accounts:login')

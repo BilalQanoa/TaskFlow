@@ -1,0 +1,254 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Tasks | TaskFlow AI{% endblock title %}
+
+{% block messages %}{% endblock messages %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const toasts = document.querySelectorAll('.toast-alert');
+        toasts.forEach(function (toast) {
+            setTimeout(function () {
+                toast.classList.add('toast-alert--dismiss');
+                setTimeout(function () {
+                    toast.remove();
+                }, 420);
+            }, 4000);
+        });
+
+        const addTaskModal = document.getElementById('addTaskModal');
+        const addTaskModalBackdrop = document.getElementById('addTaskModalBackdrop');
+        if (!addTaskModal || !addTaskModalBackdrop) {
+            return;
+        }
+
+        const openAddTaskModal = document.getElementById('openAddTaskModal');
+        const openAddTaskTriggers = document.querySelectorAll('.open-add-task-modal');
+        const closeButtons = addTaskModal.querySelectorAll('[data-close-add-task-modal]');
+        const titleInput = document.getElementById('task_title');
+
+        const openModal = function () {
+            addTaskModal.classList.add('show');
+            addTaskModalBackdrop.classList.add('show');
+            addTaskModal.setAttribute('aria-hidden', 'false');
+            addTaskModalBackdrop.setAttribute('aria-hidden', 'false');
+            document.body.classList.add('modal-open');
+            if (titleInput) {
+                titleInput.focus();
+            }
+        };
+
+        const closeModal = function () {
+            addTaskModal.classList.remove('show');
+            addTaskModalBackdrop.classList.remove('show');
+            addTaskModal.setAttribute('aria-hidden', 'true');
+            addTaskModalBackdrop.setAttribute('aria-hidden', 'true');
+            document.body.classList.remove('modal-open');
+        };
+
+        if (openAddTaskModal) {
+            openAddTaskModal.addEventListener('click', openModal);
+        }
+
+        openAddTaskTriggers.forEach(function (button) {
+            button.addEventListener('click', openModal);
+        });
+
+        closeButtons.forEach(function (button) {
+            button.addEventListener('click', closeModal);
+        });
+
+        addTaskModalBackdrop.addEventListener('click', closeModal);
+
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape' && addTaskModal.classList.contains('show')) {
+                closeModal();
+            }
+        });
+
+        {% if show_add_modal %}
+        openModal();
+        {% endif %}
+    });
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="tasks-container">
+    {% if messages %}
+    <div class="toast-notifications" id="toastNotifications" aria-live="polite">
+        {% for message in messages %}
+        <div class="toast-alert toast-alert--{% if 'success' in message.tags %}success{% elif 'error' in message.tags %}error{% elif 'warning' in message.tags %}warning{% else %}info{% endif %}"
+            role="alert">
+            <span class="toast-alert__icon" aria-hidden="true">
+                {% if 'success' in message.tags %}
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 6L9 17l-5-5"></path>
+                </svg>
+                {% elif 'error' in message.tags or 'warning' in message.tags %}
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+                {% else %}
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="16" x2="12" y2="12"></line>
+                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                </svg>
+                {% endif %}
+            </span>
+            <span class="toast-alert__text">{{ message }}</span>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <section class="tasks-shell glass-panel">
+        <div class="tasks-header">
+            <div>
+                <p class="eyebrow">Task Management</p>
+                <h2>Workspace Assignments</h2>
+                <p class="tasks-subtitle">Track deliverables, team ownership, and deadlines across your organization.</p>
+            </div>
+            <button type="button" class="btn-add-task" id="openAddTaskModal">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                Add New Task
+            </button>
+        </div>
+
+        {% if tasks %}
+        <div class="tasks-grid">
+            {% for task in tasks %}
+            <article class="task-card">
+                <div class="task-card-header">
+                    <h3 class="task-card-title">{{ task.title }}</h3>
+                    {% if task.status == 'completed' %}
+                    <span class="task-status-badge task-status-badge--completed">Completed</span>
+                    {% else %}
+                    <span class="task-status-badge task-status-badge--progress">In Progress</span>
+                    {% endif %}
+                </div>
+
+                <div class="task-team-meta">
+                    <div class="task-meta-row">
+                        <span class="task-meta-label">Team</span>
+                        <span class="task-meta-value">{{ task.team.name|default:'Unassigned' }}</span>
+                    </div>
+                    <div class="task-meta-row">
+                        <span class="task-meta-label">Team Leader</span>
+                        <span class="task-meta-value">
+                            {% if task.team and task.team.team_leader %}
+                            {{ task.team.team_leader.get_full_name|default:task.team.team_leader.username }}
+                            {% else %}
+                            Unassigned
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="task-progress-block">
+                    <div class="task-progress-label">
+                        <span>Progress</span>
+                        <span class="task-progress-value">{{ task.progress_percentage }}%</span>
+                    </div>
+                    <div class="task-progress-track" role="progressbar"
+                        aria-valuenow="{{ task.progress_percentage }}" aria-valuemin="0" aria-valuemax="100"
+                        aria-label="Task progress">
+                        <div class="task-progress-fill" style="width: {{ task.progress_percentage }}%;"></div>
+                    </div>
+                </div>
+
+                <div class="task-timeline">
+                    <span class="task-meta-label">Due Date</span>
+                    {% if task.due_date %}
+                    <time class="task-due-date{% if task.status != 'completed' and task.due_date < today %} task-due-date--overdue{% endif %}"
+                        datetime="{{ task.due_date|date:'Y-m-d' }}">
+                        {{ task.due_date|date:"M d, Y" }}
+                    </time>
+                    {% else %}
+                    <span class="task-due-date">No deadline set</span>
+                    {% endif %}
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="tasks-empty-state">
+            <div class="tasks-empty-icon" aria-hidden="true">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9 11l3 3L22 4"></path>
+                    <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+                </svg>
+            </div>
+            <h3>No tasks yet</h3>
+            <p>Assign your first task to a team and start tracking progress with deadline-aware visibility.</p>
+            <button type="button" class="btn-add-task btn-add-task--inline open-add-task-modal">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                Add New Task
+            </button>
+        </div>
+        {% endif %}
+    </section>
+</div>
+{% endblock content %}
+
+{% block page_modals %}
+<div id="addTaskModalBackdrop" class="add-task-modal-backdrop" aria-hidden="true"></div>
+<div id="addTaskModal" role="dialog" aria-modal="true" aria-labelledby="add-task-modal-title" aria-hidden="true">
+    <div class="add-task-modal-header">
+        <div>
+            <p class="eyebrow">New Assignment</p>
+            <h2 id="add-task-modal-title">Add Task</h2>
+        </div>
+        <button type="button" class="modal-close-btn" data-close-add-task-modal aria-label="Close modal">×</button>
+    </div>
+
+    <form method="POST" action="{% url 'dashboard:tasks' %}" class="glass-form add-task-form" novalidate>
+        {% csrf_token %}
+
+        <div class="glass-field">
+            <label for="task_title">Task Title</label>
+            <input id="task_title" name="title" type="text" class="glass-input" value="{{ form_data.title }}"
+                placeholder="Enter task title" required autocomplete="off">
+        </div>
+
+        <div class="glass-field">
+            <label for="task_team">Assigned Team</label>
+            <select id="task_team" name="team_id" class="glass-control" required>
+                <option value="" disabled {% if not form_data.team_id %}selected{% endif %}>Select a team</option>
+                {% for team in teams %}
+                <option value="{{ team.pk }}" {% if form_data.team_id == team.pk|stringformat:"s" %}selected{% endif %}>
+                    {{ team.name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="glass-field">
+            <label for="task_due_date">Due Date</label>
+            <input id="task_due_date" name="due_date" type="date" class="glass-input" value="{{ form_data.due_date }}"
+                required>
+        </div>
+
+        <div class="add-task-modal-actions">
+            <button type="button" class="btn-modal-cancel" data-close-add-task-modal>Cancel</button>
+            <button type="submit" class="btn-modal-submit">Assign Task</button>
+        </div>
+    </form>
+</div>
+{% endblock page_modals %}

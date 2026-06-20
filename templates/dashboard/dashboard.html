@@ -159,9 +159,9 @@
                         <li>
                             <div>
                                 <strong>{{ task.title }}</strong>
-                                <p>{{ task.due_date }}</p>
+                                <p>{{ task.due_date|date:"M d, Y" }}{% if task.team %} · {{ task.team.name }}{% endif %}</p>
                             </div>
-                            <span class="priority-pill {{ task.priority }}">{{ task.priority_label }}</span>
+                            <span class="priority-pill in_progress">Due Soon</span>
                         </li>
                         {% empty %}
                         <li>

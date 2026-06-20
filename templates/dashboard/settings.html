@@ -39,11 +39,18 @@
     </div>
     {% endif %}
 
+    <div class="settings-hero">
+        <div>
+            <h2>Settings Management</h2>
+        </div>
+    </div>
+
     <div class="settings-shell">
         <nav class="settings-sidebar" aria-label="Settings navigation">
             <button type="button" class="settings-tab-btn{% if active_tab == 'security' %} active{% endif %}"
                 data-tab-target="security">Account Security</button>
-            
+            <button type="button" class="settings-tab-btn{% if active_tab == 'profile' %} active{% endif %}"
+                data-tab-target="profile">Profile Information</button>
             {% if request.user.role == 'company' or request.user.is_superuser %}
             <button type="button" class="settings-tab-btn{% if active_tab == 'workspace' %} active{% endif %}"
                 data-tab-target="workspace">Workspace Settings</button>
