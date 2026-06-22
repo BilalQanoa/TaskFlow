@@ -89,11 +89,22 @@
                         <div class="tl-subtask-row">
                             <div class="tl-subtask-main">
                                 <div class="tl-member-initials">
-                                    {{ subtask.assigned_to.get_full_name|default:subtask.assigned_to.username|slice:":1"|upper }}
+                                    {% if subtask.assigned_to %}
+                                    {{ subtask.assigned_to.username|slice:":1"|upper }}
+                                    {% else %}
+                                    —
+                                    {% endif %}
                                 </div>
                                 <div>
                                     <strong>{{ subtask.title }}</strong>
-                                    <p>{{ subtask.assigned_to.get_full_name|default:subtask.assigned_to.username }} · Due {{ subtask.due_date|date:"M d"|default:"—" }}</p>
+                                    <p>
+                                        {% if subtask.assigned_to %}
+                                        {{ subtask.assigned_to.get_full_name|default:subtask.assigned_to.username }}
+                                        {% else %}
+                                        Unassigned
+                                        {% endif %}
+                                        · Due {{ subtask.due_date|date:"M d"|default:"—" }}
+                                    </p>
                                     {% if subtask.review_notice %}
                                     <p class="tl-review-notice">{{ subtask.review_notice }}</p>
                                     {% endif %}
