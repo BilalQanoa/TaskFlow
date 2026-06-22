@@ -24,17 +24,16 @@
     <section class="tl-glass-card tl-section-card tl-trello-board-wrap">
         {% if active_main_task %}
         <div class="tl-epic-header">
-            <span class="tl-epic-badge">🎯 Active Epic Task: {{ active_main_task.title }}</span>
+            <span class="tl-epic-badge"> Active Task: {{ active_main_task.title }}</span>
         </div>
         {% else %}
         <div class="tl-epic-header">
-            <span class="tl-epic-badge">🎯 Active Epic Task: No Active Task Mapped</span>
+            <span class="tl-epic-badge"> Active Task: No Active Task Mapped</span>
         </div>
         {% endif %}
 
         <div class="tl-section-header tl-board-toolbar">
             <div>
-                <p class="eyebrow">Personal Kanban Hub</p>
                 <h3>My Board</h3>
                 <p class="tl-section-sub">
                     Drag cards between columns. Use <strong>Send to Review</strong> when you're done — your leader approves the final <em>Done</em> status.

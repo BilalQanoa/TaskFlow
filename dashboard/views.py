@@ -345,7 +345,11 @@ def admin_dashboard(request):
     all_tasks = _owner_main_tasks_queryset(company)
     active_tasks = all_tasks.exclude(status='done')
     completed_tasks = all_tasks.filter(status='done')
-    recent_activities = ActivityLog.objects.filter(company=company)[:4]
+    
+    # Recent Activities Widget: dynamic from ActivityLog, ordered chronologically (latest)
+    recent_activities = ActivityLog.objects.filter(company=company).order_by('-created_at')[:4]
+    
+    # Upcoming Deadlines Widget: closest upcoming
     upcoming_deadlines = (
         all_tasks.exclude(status='done')
         .filter(due_date__isnull=False)
@@ -353,8 +357,40 @@ def admin_dashboard(request):
         .order_by('due_date')[:5]
     )
 
-    in_progress_count = all_tasks.filter(status='in_progress').count()
+    # Calculate real task counts
+    total_tasks_count = all_tasks.count()
+    todo_count = all_tasks.filter(status='todo').count()
+    in_progress_count = all_tasks.filter(status__in=['in_progress', 'under_review']).count()
     completed_count = completed_tasks.count()
+
+    overall_progress = int((completed_count / total_tasks_count) * 100) if total_tasks_count > 0 else 0
+
+    # Progress chart logic
+    import calendar
+    import json
+    from django.utils import timezone
+    today = timezone.now()
+    current_year = today.year
+    progress_labels = []
+    progress_points = []
+    
+    # Calculate cumulative completion percentage for Jan through Jun of the current year
+    for month_num in range(1, 7):
+        progress_labels.append(calendar.month_abbr[month_num])
+        
+        month_total_tasks = all_tasks.filter(
+            created_at__year=current_year,
+            created_at__month__lte=month_num
+        ).count()
+        
+        month_completed_tasks = all_tasks.filter(
+            status='done',
+            updated_at__year=current_year,
+            updated_at__month__lte=month_num
+        ).count()
+        
+        progress_percentage = round((month_completed_tasks / month_total_tasks) * 100) if month_total_tasks > 0 else 0
+        progress_points.append(progress_percentage)
 
     context = {
         'company': company,
@@ -362,14 +398,15 @@ def admin_dashboard(request):
         'total_teams': teams.count(),
         'total_employees': employees.count(),
         'active_tasks': active_tasks.count(),
-        'completed_tasks': completed_tasks.count(),
+        'completed_tasks': completed_count,
         'recent_activities': recent_activities,
         'upcoming_deadlines': upcoming_deadlines,
-        'tasks_status_data': {
-            'completed': completed_count,
-            'in_progress': in_progress_count,
-        },
-        'progress_points': [40, 58, 70, 82, 88, 96],
+        
+        # Chart Data JSON
+        'progress_labels_json': json.dumps(progress_labels),
+        'progress_points_json': json.dumps(progress_points),
+        'tasks_status_data_json': json.dumps([completed_count, in_progress_count, todo_count]),
+        'overall_progress': overall_progress,
     }
 
     return render(request, 'dashboard/dashboard.html', context)

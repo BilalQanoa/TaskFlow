@@ -1,13 +1,45 @@
 document.addEventListener('DOMContentLoaded', function () {
+    let progressLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+    let progressPoints = [40, 58, 70, 82, 88, 96];
+    let tasksStatusData = [12, 8, 4];
+    let tasksStatusLabels = ['Completed', 'In Progress', 'Pending'];
+    let tasksStatusColors = ['#2563EB', '#06B6D4', '#F59E0B'];
+
+    const chartDataEl = document.getElementById('chart-data');
+    if (chartDataEl) {
+        try {
+            const chartData = JSON.parse(chartDataEl.textContent);
+            if (chartData.progressLabels && chartData.progressLabels.length >= 0) {
+                progressLabels = chartData.progressLabels;
+            }
+            if (chartData.progressPoints && chartData.progressPoints.length >= 0) {
+                progressPoints = chartData.progressPoints;
+            }
+            if (chartData.tasksStatusData && chartData.tasksStatusData.length >= 0) {
+                tasksStatusData = chartData.tasksStatusData;
+                
+                // Fallback handling when no tasks exist
+                const totalTasks = tasksStatusData.reduce((a, b) => a + b, 0);
+                if (totalTasks === 0) {
+                    tasksStatusData = [1];
+                    tasksStatusLabels = ['No Tasks Available'];
+                    tasksStatusColors = ['#E2E8F0']; // Gray placeholder color
+                }
+            }
+        } catch (e) {
+            console.error("Failed to parse chart data JSON", e);
+        }
+    }
+
     const progressCtx = document.getElementById('projectProgressChart');
     if (progressCtx && window.Chart) {
         new Chart(progressCtx, {
             type: 'line',
             data: {
-                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                labels: progressLabels,
                 datasets: [{
                     label: 'Completion %',
-                    data: [40, 58, 70, 82, 88, 96],
+                    data: progressPoints,
                     borderColor: '#2563EB',
                     backgroundColor: 'rgba(37, 99, 235, 0.12)',
                     fill: true,
@@ -35,10 +67,10 @@ document.addEventListener('DOMContentLoaded', function () {
         new Chart(statusCtx, {
             type: 'doughnut',
             data: {
-                labels: ['Completed', 'In Progress', 'Pending'],
+                labels: tasksStatusLabels,
                 datasets: [{
-                    data: [12, 8, 4],
-                    backgroundColor: ['#2563EB', '#06B6D4', '#F59E0B'],
+                    data: tasksStatusData,
+                    backgroundColor: tasksStatusColors,
                     borderWidth: 0,
                 }]
             },

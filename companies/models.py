@@ -653,3 +653,40 @@ class TaskChecklistItem(models.Model):
         return self.title
 
 
+
+from django.db.models.signals import post_save, pre_save
+from django.dispatch import receiver
+
+@receiver(pre_save, sender=Task)
+def capture_task_original_status(sender, instance, **kwargs):
+    if instance.pk:
+        try:
+            instance._original_status = Task.objects.get(pk=instance.pk).status
+        except Task.DoesNotExist:
+            instance._original_status = None
+    else:
+        instance._original_status = None
+
+@receiver(post_save, sender=Task)
+def log_task_activity(sender, instance, created, **kwargs):
+    if created:
+        if instance.is_main_task:
+            ActivityLog.objects.create(company=instance.company, action='task_created', description=f"Task created: {instance.title}")
+    elif getattr(instance, '_original_status', None) != 'done' and instance.status == 'done':
+        if instance.is_main_task:
+            ActivityLog.objects.create(company=instance.company, action='task_completed', description=f"Task completed: {instance.title}")
+
+@receiver(post_save, sender=Team)
+def log_team_activity(sender, instance, created, **kwargs):
+    if created:
+        ActivityLog.objects.create(company=instance.company, action='team_created', description=f"Team created: {instance.name}")
+
+@receiver(post_save, sender=User)
+def log_user_activity(sender, instance, created, **kwargs):
+    if created and getattr(instance, 'company_id', None):
+        ActivityLog.objects.create(company=instance.company, action='employee_invited', description=f"Employee added: {instance.get_full_name() or instance.username}")
+
+@receiver(post_save, sender=TeamMessage)
+def log_message_activity(sender, instance, created, **kwargs):
+    if created:
+        ActivityLog.objects.create(company=instance.team.company, action='message_sent', description=f"New discussion in {instance.team.name}")
