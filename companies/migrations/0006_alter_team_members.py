@@ -12,9 +12,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AlterField(
-            model_name='team',
-            name='members',
-            field=models.ManyToManyField(blank=True, related_name='teams', through='companies.TeamMembership', to=settings.AUTH_USER_MODEL),
-        ),
+        migrations.RunPython(migrations.RunPython.noop, migrations.RunPython.noop),
     ]
