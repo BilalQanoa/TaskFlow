@@ -30,6 +30,7 @@ class CompanyRegistrationForm(UserCreationForm):
         user = super().save(commit=False)
         user.email = self.cleaned_data['email']
         user.role = 'company'
+        user.is_active = False
 
         if commit:
             user.save()

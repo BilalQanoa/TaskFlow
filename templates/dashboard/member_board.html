@@ -1,0 +1,182 @@
+{% extends 'dashboard/member_base.html' %}
+{% load static %}
+
+{% block title %}My Board | TaskFlow AI{% endblock title %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/team_leader.css' %}">
+<link rel="stylesheet" href="{% static 'css/kanban_styles.css' %}">
+{% endblock extra_css %}
+
+{% block page_heading %}My Board{% endblock page_heading %}
+
+{% block content %}
+<div class="tl-workspace">
+    {% if not has_teams %}
+    <div class="tl-warning-notice tl-glass-card" role="alert">
+        <div class="tl-warning-icon" aria-hidden="true">!</div>
+        <div>
+            <h3>No Teams Assigned</h3>
+            <p>You haven't been added to a team yet. Your Team Leader will assign you once work begins.</p>
+        </div>
+    </div>
+    {% else %}
+    <section class="tl-glass-card tl-section-card tl-trello-board-wrap">
+        {% if active_main_task %}
+        <div class="tl-epic-header">
+            <span class="tl-epic-badge">🎯 Active Epic Task: {{ active_main_task.title }}</span>
+        </div>
+        {% else %}
+        <div class="tl-epic-header">
+            <span class="tl-epic-badge">🎯 Active Epic Task: No Active Task Mapped</span>
+        </div>
+        {% endif %}
+
+        <div class="tl-section-header tl-board-toolbar">
+            <div>
+                <p class="eyebrow">Personal Kanban Hub</p>
+                <h3>My Board</h3>
+                <p class="tl-section-sub">
+                    Drag cards between columns. Use <strong>Send to Review</strong> when you're done — your leader approves the final <em>Done</em> status.
+                </p>
+            </div>
+            <div class="tl-board-filters">
+                {% if member_main_tasks and member_main_tasks|length > 1 %}
+                <div class="tl-board-filter">
+                    <label for="mainTaskFilter">Epic Main Task</label>
+                    <select id="mainTaskFilter" class="tl-input" onchange="window.location.href='?main_task=' + this.value">
+                        {% for epic in member_main_tasks %}
+                        <option value="{{ epic.id }}"{% if active_main_task and active_main_task.id == epic.id %} selected{% endif %}>{{ epic.title }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if not active_main_task %}
+        <p class="tl-empty-state">No epic main tasks are assigned to your team yet.</p>
+        {% else %}
+        <div class="tl-kanban-grid tl-trello-grid" id="kanbanBoard" data-editable="true">
+            {% for column in kanban_columns %}
+            <div class="tl-kanban-column tl-trello-column" data-status="{{ column.key }}">
+                
+                <header class="tl-kanban-column-head">
+                    <h4>{{ column.label }}</h4>
+                    <span class="tl-kanban-count">{{ column.cards|length }}</span>
+                </header>
+
+                {% if column.key == 'todo' or column.key == 'in_progress' or column.key == 'under_review' %}
+                <button type="button" class="tl-add-card-btn" data-add-status="{{ column.key }}"
+                    aria-label="Add card to {{ column.label }}">
+                    + Add Card
+                </button>
+                {% endif %}
+
+                <div class="tl-kanban-cards tl-trello-cards tl-trello-cards--droppable"
+                    data-drop-status="{{ column.key }}">
+                    {% for card in column.cards %}
+                    <article class="tl-kanban-card tl-trello-card{% if column.key != 'done' %} tl-trello-card--draggable{% endif %}"
+                        {% if column.key != 'done' %}draggable="true" data-card-id="{{ card.id }}"{% endif %}>
+                        <div class="tl-kanban-card-head">
+                            <h5>{{ card.title }}</h5>
+                        </div>
+                        
+                        {% if card.review_notice %}
+                        <div style="font-size: 0.8rem; color: #f59e0b; background: rgba(245, 158, 11, 0.1); padding: 4px 8px; border-radius: 4px; margin-bottom: 8px;">
+                            {{ card.review_notice }}
+                        </div>
+                        {% endif %}
+
+                        {% if card.description %}
+                        <p class="tl-kanban-desc">{{ card.description|truncatechars:100 }}</p>
+                        {% endif %}
+
+                        {% if card.checklists.all %}
+                        <ul class="tl-checklist">
+                            {% for item in card.checklists.all %}
+                            <li class="tl-checklist-item">
+                                <div class="tl-checklist-row">
+                                    <form method="POST" action="{% url 'management:member_toggle_checklist' item.id %}" class="tl-checklist-form">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                        <label class="tl-checklist-label">
+                                            <input type="checkbox" name="is_completed" value="on" class="tl-checklist-checkbox"{% if item.is_completed %} checked{% endif %} onchange="this.form.submit()">
+                                            <span class="tl-checklist-text{% if item.is_completed %} tl-checklist-text--done{% endif %}">{{ item.title }}</span>
+                                        </label>
+                                    </form>
+                                </div>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        {% endif %}
+
+                        <div class="tl-kanban-card-meta">
+                            <span>{{ card.assigned_to.get_full_name|default:card.assigned_to.username }}</span>
+                        </div>
+
+                        {% if column.key == 'todo' or column.key == 'in_progress' %}
+                        <form method="POST" action="{% url 'management:member_send_card_to_review' card.id %}" class="tl-kanban-inline-form">
+                            {% csrf_token %}
+                            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                            <button type="submit" class="tl-btn-ghost tl-btn-sm">Send to Review</button>
+                        </form>
+                        {% endif %}
+                    </article>
+                    {% empty %}
+                    <div style="text-align: center; color: var(--text-muted); padding: 1rem; font-size: 0.85rem;">
+                        No cards
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </section>
+    {% endif %}
+</div>
+
+{% if active_main_task %}
+<div id="addCardBackdrop" class="tl-modal-backdrop" aria-hidden="true"></div>
+<div id="addCardModal" class="tl-modal" role="dialog" aria-modal="true" aria-labelledby="add-card-title" aria-hidden="true">
+    <div class="tl-modal-card tl-glass-card">
+        <div class="tl-section-header">
+            <div>
+                <p class="eyebrow">New Card</p>
+                <h3 id="add-card-title">Add to <span id="addCardColumnLabel">To Do</span></h3>
+            </div>
+            <button type="button" class="tl-modal-close" data-close-add-card aria-label="Close">&times;</button>
+        </div>
+
+        <form method="POST" action="{% url 'management:member_create_card' %}" class="tl-modal-form" id="addCardForm">
+            {% csrf_token %}
+            <input type="hidden" name="status" id="addCardStatus" value="todo">
+            <div class="tl-form-field">
+                <label for="add_card_title">Card Title</label>
+                <input id="add_card_title" name="title" type="text" class="tl-input" placeholder="What needs to be done?" required>
+            </div>
+            <div class="tl-form-field">
+                <label for="add_card_description">Description</label>
+                <textarea id="add_card_description" name="description" class="tl-input tl-textarea" rows="3" placeholder="Optional details"></textarea>
+            </div>
+            <div class="tl-form-field">
+                <label for="add_checklist_items">Checklist Items</label>
+                <textarea id="add_checklist_items" name="checklist_items" class="tl-input tl-textarea" rows="4" placeholder="One checklist item per line"></textarea>
+            </div>
+            <button type="submit" class="tl-btn-primary tl-btn-full">Create Card</button>
+        </form>
+    </div>
+</div>
+{% endif %}
+
+<form method="POST" id="moveCardForm" class="visually-hidden" data-move-base="{% url 'management:member_move_card' 0 %}">
+    {% csrf_token %}
+    <input type="hidden" name="status" id="moveCardStatus" value="">
+    {% if active_main_task %}<input type="hidden" name="main_task_id" value="{{ active_main_task.id }}">{% endif %}
+</form>
+{% endblock content %}
+
+{% block extra_js %}
+<script src="{% static 'js/kanban_board.js' %}"></script>
+{% endblock extra_js %}

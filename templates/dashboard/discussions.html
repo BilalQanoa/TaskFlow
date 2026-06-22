@@ -1,0 +1,250 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Discussions | TaskFlow AI{% endblock title %}
+
+{% block messages %}{% endblock messages %}
+
+{% block content %}
+<div class="discussions-container{% if active_team %} chat-active{% endif %}" id="discussionsRoot">
+    {% if messages %}
+    <div class="toast-notifications" id="toastNotifications" aria-live="polite">
+        {% for message in messages %}
+        <div class="toast-alert toast-alert--{% if 'success' in message.tags %}success{% elif 'error' in message.tags %}error{% elif 'warning' in message.tags %}warning{% else %}info{% endif %}"
+            role="alert">
+            <span class="toast-alert__icon" aria-hidden="true">
+                {% if 'success' in message.tags %}
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 6L9 17l-5-5"></path>
+                </svg>
+                {% else %}
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+                {% endif %}
+            </span>
+            <span class="toast-alert__text">{{ message }}</span>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <section class="discussions-board glass-panel" id="teamsBoard" aria-label="Team channels">
+        <div class="discussions-board-header">
+            <div>
+                <p class="eyebrow">Team Discussions</p>
+                <h2>Workspace Channels</h2>
+                <p class="discussions-subtitle">Open a team channel to collaborate in real time with leaders and members.</p>
+            </div>
+        </div>
+
+        {% if teams %}
+        <div class="discussions-teams-grid">
+            {% for team in teams %}
+            <button type="button" class="discussion-team-card" data-team-id="{{ team.pk }}"
+                data-team-url="{% url 'dashboard:discussions_team' team_id=team.pk %}"
+                aria-label="Open {{ team.name }} channel">
+                <div class="discussion-team-card__icon" aria-hidden="true">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                    </svg>
+                </div>
+                <div class="discussion-team-card__body">
+                    <h3 class="discussion-team-card__title">{{ team.name }}</h3>
+                    <p class="discussion-team-card__leader">
+                        Leader:
+                        {% if team.team_leader %}
+                        {{ team.team_leader.get_full_name|default:team.team_leader.username }}
+                        {% else %}
+                        Unassigned
+                        {% endif %}
+                    </p>
+                    <div class="discussion-team-card__meta">
+                        <span>{{ team.member_count }} member{{ team.member_count|pluralize }}</span>
+                        {% if team.last_message_at %}
+                        <span>Last message {{ team.last_message_at|timesince }} ago</span>
+                        {% else %}
+                        <span>No messages yet</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <span class="discussion-team-card__chevron" aria-hidden="true">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="9 18 15 12 9 6"></polyline>
+                    </svg>
+                </span>
+            </button>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="discussions-empty-state">
+            <div class="discussions-empty-icon" aria-hidden="true">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                </svg>
+            </div>
+            <h3>No team channels available</h3>
+            <p>You are not assigned to any teams yet. Once you join a squad, your conversations will appear here.</p>
+        </div>
+        {% endif %}
+    </section>
+
+    <section class="discussions-chat-panel" id="chatPanel" aria-label="Team chat" aria-hidden="{% if active_team %}false{% else %}true{% endif %}">
+        {% if active_team %}
+        <header class="discussions-chat-header">
+            <div class="discussions-chat-header__info">
+                <button type="button" class="discussions-chat-back" id="closeChatPanel" aria-label="Back to teams">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="15 18 9 12 15 6"></polyline>
+                    </svg>
+                </button>
+                <div>
+                    <p class="eyebrow">Live Channel</p>
+                    <h2 id="chatTeamTitle">{{ active_team.name }}</h2>
+                </div>
+            </div>
+            <div class="discussions-chat-header__badge">
+                {% if active_team.team_leader %}
+                <span class="discussion-leader-badge">
+                    {{ active_team.team_leader.get_full_name|default:active_team.team_leader.username }}
+                </span>
+                {% else %}
+                <span class="discussion-leader-badge discussion-leader-badge--muted">No leader assigned</span>
+                {% endif %}
+            </div>
+        </header>
+
+        <div class="discussions-chat-stream" id="chatStream" role="log" aria-live="polite" aria-relevant="additions">
+            {% for msg in team_messages %}
+            {% with sender_name=msg.sender.get_full_name|default:msg.sender.username %}
+            <article
+                class="chat-message{% if msg.sender_id == user.id %} chat-message--own{% else %} chat-message--other{% endif %}">
+                {% if msg.sender_id != user.id %}
+                <div class="chat-avatar" aria-hidden="true">{{ sender_name|slice:":1"|upper }}</div>
+                {% endif %}
+                <div
+                    class="chat-bubble{% if msg.sender_id == user.id %} chat-bubble--own{% else %} chat-bubble--other{% endif %}">
+                    <div class="chat-bubble__meta">
+                        <strong class="chat-bubble__name">{{ sender_name }}</strong>
+                        <span class="chat-bubble__title">{{ msg.sender.job_title|default:'Team Member' }}</span>
+                    </div>
+                    <p class="chat-bubble__text">{{ msg.message_text|linebreaksbr }}</p>
+                    <time class="chat-bubble__time" datetime="{{ msg.timestamp|date:'c' }}">
+                        {{ msg.timestamp|date:"M d, g:i A" }}
+                    </time>
+                </div>
+                {% if msg.sender_id == user.id %}
+                <div class="chat-avatar chat-avatar--own" aria-hidden="true">{{ sender_name|slice:":1"|upper }}</div>
+                {% endif %}
+            </article>
+            {% endwith %}
+            {% empty %}
+            <div class="discussions-chat-empty">
+                <p>No messages yet. Be the first to start the conversation.</p>
+            </div>
+            {% endfor %}
+        </div>
+
+        <form method="POST" action="{% url 'dashboard:discussions_team' team_id=active_team.pk %}"
+            class="discussions-chat-compose" id="chatComposeForm">
+            {% csrf_token %}
+            <input type="hidden" name="team_id" value="{{ active_team.pk }}">
+            <label for="message_text" class="sr-only">Message</label>
+            <textarea id="message_text" name="message_text" class="discussions-chat-input" rows="1"
+                placeholder="Type your message here..." required autocomplete="off"></textarea>
+            <button type="submit" class="discussions-chat-send" aria-label="Send message">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25"
+                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                </svg>
+            </button>
+        </form>
+        {% endif %}
+    </section>
+</div>
+{% endblock content %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const root = document.getElementById('discussionsRoot');
+        const chatPanel = document.getElementById('chatPanel');
+        const chatStream = document.getElementById('chatStream');
+        const closeChatBtn = document.getElementById('closeChatPanel');
+        const teamCards = document.querySelectorAll('.discussion-team-card');
+        const discussionsBaseUrl = '{% url "dashboard:discussions" %}';
+        const messageInput = document.getElementById('message_text');
+
+        const toasts = document.querySelectorAll('.toast-alert');
+        toasts.forEach(function (toast) {
+            setTimeout(function () {
+                toast.classList.add('toast-alert--dismiss');
+                setTimeout(function () {
+                    toast.remove();
+                }, 420);
+            }, 4000);
+        });
+
+        const scrollChatToBottom = function () {
+            if (!chatStream) {
+                return;
+            }
+            chatStream.scrollTop = chatStream.scrollHeight;
+        };
+
+        const openChat = function (teamUrl) {
+            if (!teamUrl) {
+                return;
+            }
+            window.location.href = teamUrl;
+        };
+
+        const closeChat = function () {
+            window.location.href = discussionsBaseUrl;
+        };
+
+        teamCards.forEach(function (card) {
+            card.addEventListener('click', function () {
+                openChat(card.getAttribute('data-team-url'));
+            });
+        });
+
+        if (closeChatBtn) {
+            closeChatBtn.addEventListener('click', closeChat);
+        }
+
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape' && root && root.classList.contains('chat-active')) {
+                closeChat();
+            }
+        });
+
+        if (root && root.classList.contains('chat-active')) {
+            scrollChatToBottom();
+            if (messageInput) {
+                messageInput.focus();
+            }
+        }
+
+        if (messageInput) {
+            messageInput.addEventListener('keydown', function (event) {
+                if (event.key === 'Enter' && !event.shiftKey) {
+                    event.preventDefault();
+                    const form = document.getElementById('chatComposeForm');
+                    if (form && messageInput.value.trim()) {
+                        form.submit();
+                    }
+                }
+            });
+        }
+    });
+</script>
+{% endblock extra_js %}

@@ -1,0 +1,85 @@
+{% extends 'dashboard/team_leader_base.html' %}
+
+{% block title %}Discussions | Team Leader | TaskFlow AI{% endblock title %}
+
+{% block page_heading %}Team Discussions{% endblock page_heading %}
+
+{% block content %}
+<div class="tl-workspace tl-discussions-layout">
+    {% if not has_teams %}
+    <div class="tl-warning-notice tl-glass-card" role="alert">
+        <div class="tl-warning-icon" aria-hidden="true">!</div>
+        <div>
+            <h3>No Teams Assigned</h3>
+            <p>There are no teams assigned to you yet. Please review this with the Company Owner.</p>
+        </div>
+    </div>
+    {% else %}
+    <aside class="tl-glass-card tl-section-card tl-channel-sidebar">
+        <div class="tl-section-header">
+            <div>
+                <p class="eyebrow">Secure Channels</p>
+                <h3>Your Teams</h3>
+            </div>
+        </div>
+        <ul class="tl-channel-list">
+            {% for team in teams %}
+            <li>
+                <a href="{% url 'management:team_leader_discussions_team' team.id %}"
+                    class="tl-channel-link{% if active_team and active_team.id == team.id %} active{% endif %}">
+                    <strong>{{ team.name }}</strong>
+                    <span>{% if team.team_leader_id == user.id %}Leader{% else %}Member{% endif %}</span>
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+    </aside>
+
+    <section class="tl-glass-card tl-section-card tl-chat-card">
+        {% if active_team %}
+        <div class="tl-section-header">
+            <div>
+                <p class="eyebrow">Discussion Hub</p>
+                <h3>{{ active_team.name }} Room</h3>
+                <p class="tl-section-sub">You can only access channels for teams you lead or belong to.</p>
+            </div>
+        </div>
+
+        <div class="tl-chat-feed" id="teamChatFeed">
+            {% for message in team_messages %}
+            <div class="tl-chat-bubble {% if message.sender_id == user.id %}tl-chat-bubble--self{% endif %}">
+                <div class="tl-chat-meta">
+                    <strong>{{ message.sender.get_full_name|default:message.sender.username }}</strong>
+                    <span>{{ message.timestamp|date:"M d, H:i" }}</span>
+                </div>
+                <p>{{ message.message_text }}</p>
+            </div>
+            {% empty %}
+            <p class="tl-empty-inline">Start the conversation with your team.</p>
+            {% endfor %}
+        </div>
+
+        <form method="POST" action="{% url 'management:team_leader_discussions_team' active_team.id %}" class="tl-chat-form">
+            {% csrf_token %}
+            <input type="hidden" name="team_id" value="{{ active_team.id }}">
+            <textarea name="message_text" class="tl-chat-input" rows="3" placeholder="Post an update to {{ active_team.name }}..." required></textarea>
+            <button type="submit" class="tl-btn-primary">Send Message</button>
+        </form>
+        {% else %}
+        <p class="tl-empty-state">Select a team channel from the sidebar to begin.</p>
+        {% endif %}
+    </section>
+    {% endif %}
+</div>
+{% endblock content %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const chatFeed = document.getElementById('teamChatFeed');
+    if (chatFeed) {
+        chatFeed.scrollTop = chatFeed.scrollHeight;
+    }
+});
+</script>
+{% endblock extra_js %}

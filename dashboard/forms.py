@@ -82,6 +82,34 @@ class StyledPasswordChangeForm(PasswordChangeForm):
             })
 
 
+class EmployeeActivationForm(forms.Form):
+    password1 = forms.CharField(
+        label='Password',
+        min_length=8,
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control activation-password',
+            'placeholder': 'Create a secure password',
+            'autocomplete': 'new-password',
+        }),
+    )
+    password2 = forms.CharField(
+        label='Confirm Password',
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control activation-password',
+            'placeholder': 'Confirm your password',
+            'autocomplete': 'new-password',
+        }),
+    )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        password1 = cleaned_data.get('password1')
+        password2 = cleaned_data.get('password2')
+        if password1 and password2 and password1 != password2:
+            raise forms.ValidationError('The passwords you entered do not match.')
+        return cleaned_data
+
+
 class CompanyWorkspaceForm(forms.ModelForm):
     class Meta:
         model = Company

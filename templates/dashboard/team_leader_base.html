@@ -1,0 +1,155 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Team Leader Workspace | TaskFlow AI{% endblock title %}</title>
+    <link rel="stylesheet" href="{% static 'css/global_theme.css' %}">
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+    <link rel="stylesheet" href="{% static 'css/team_leader.css' %}">
+    {% block extra_css %}{% endblock extra_css %}
+    <script>
+        (function () {
+            var storedTheme = localStorage.getItem('taskflow_theme') || 'system';
+            document.documentElement.dataset.theme = storedTheme;
+        })();
+    </script>
+</head>
+
+<body class="team-leader-body">
+    <div class="dashboard-shell team-leader-shell">
+        <aside class="sidebar team-leader-sidebar">
+            <div class="brand-block">
+                <div class="brand-mark"><span></span></div>
+                <div>
+                    <h1>TaskFlow AI</h1>
+                    <p>Leader Command</p>
+                </div>
+            </div>
+
+            <nav class="nav-links" id="teamLeaderNav" aria-label="Team Leader navigation">
+                <a class="{% if request.resolver_match.url_name == 'team_leader_dashboard' %}active{% endif %}"
+                    href="{% url 'management:team_leader_dashboard' %}">Dashboard</a>
+                <a class="{% if request.resolver_match.url_name == 'team_leader_teams' %}active{% endif %}"
+                    href="{% url 'management:team_leader_teams' %}">Teams</a>
+                <a class="{% if request.resolver_match.url_name == 'team_leader_boards' %}active{% endif %}"
+                    href="{% url 'management:team_leader_boards' %}">Boards</a>
+                <a class="{% if request.resolver_match.url_name == 'team_leader_tasks' %}active{% endif %}"
+                    href="{% url 'management:team_leader_tasks' %}">Tasks</a>
+                <a class="{% if request.resolver_match.url_name == 'team_leader_discussions' or request.resolver_match.url_name == 'team_leader_discussions_team' %}active{% endif %}"
+                    href="{% url 'management:team_leader_discussions' %}">Discussions</a>
+                <a class="{% if request.resolver_match.url_name == 'team_leader_settings' %}active{% endif %}"
+                    href="{% url 'management:team_leader_settings' %}">Settings</a>
+            </nav>
+
+            <div class="sidebar-card">
+                <p>Workspace</p>
+                <strong>{{ primary_team.name|default:company.name|default:"Your Squad" }}</strong>
+                <span>Team Leader operations hub</span>
+            </div>
+        </aside>
+
+        <main class="main-panel team-leader-panel">
+            <header class="topbar">
+                <div class="topbar-left">
+                    <div>
+                        <p class="eyebrow">Team Leader</p>
+                        <h2>{% block page_heading %}Workspace{% endblock page_heading %}</h2>
+                    </div>
+                </div>
+                <div class="topbar-right">
+                    <div class="profile-pill">
+                        <div class="avatar">{{ user.get_full_name|default:user.username|first|upper }}</div>
+                        <div>
+                            <strong>{{ user.get_full_name|default:user.username }}</strong>
+                            <span>{{ user.job_title|default:"Team Leader" }}</span>
+                        </div>
+                    </div>
+                    <div class="nav-actions">
+                        <a href="{% url 'accounts:logout' %}" class="button-secondary logout-link">Logout</a>
+                    </div>
+                </div>
+            </header>
+
+            {% block messages %}
+            {% if messages %}
+            <div class="messages-container team-leader-messages">
+                {% for message in messages %}
+                <div class="message {{ message.tags }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% endblock messages %}
+
+            {% block content %}{% endblock content %}
+        </main>
+    </div>
+
+    <div id="tlDeleteModal" class="tl-delete-modal" role="dialog" aria-modal="true" aria-labelledby="tlDeleteModalTitle" aria-hidden="true">
+        <div class="tl-delete-modal-card">
+            <h3 id="tlDeleteModalTitle">Confirm Deletion</h3>
+            <p class="tl-delete-modal-text">Are you sure you want to permanently delete this item? This action cannot be undone.</p>
+            <div class="tl-delete-modal-actions">
+                <button type="button" class="tl-delete-modal-cancel" id="tlDeleteModalCancel">Cancel</button>
+                <button type="button" class="tl-delete-modal-confirm" id="tlDeleteModalConfirm">Yes, Delete</button>
+            </div>
+        </div>
+    </div>
+
+    {% block page_modals %}{% endblock page_modals %}
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var modal = document.getElementById('tlDeleteModal');
+        var cancelBtn = document.getElementById('tlDeleteModalCancel');
+        var confirmBtn = document.getElementById('tlDeleteModalConfirm');
+        var pendingDeleteForm = null;
+
+        function openDeleteModal(form) {
+            pendingDeleteForm = form;
+            modal.classList.add('show');
+            modal.setAttribute('aria-hidden', 'false');
+        }
+
+        function closeDeleteModal() {
+            pendingDeleteForm = null;
+            modal.classList.remove('show');
+            modal.setAttribute('aria-hidden', 'true');
+        }
+
+        document.querySelectorAll('.js-delete-trigger').forEach(function (trigger) {
+            trigger.addEventListener('mousedown', function (event) {
+                event.stopPropagation();
+            });
+            trigger.addEventListener('click', function (event) {
+                event.preventDefault();
+                var form = trigger.closest('form');
+                if (!form) return;
+                openDeleteModal(form);
+            });
+        });
+
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', closeDeleteModal);
+        }
+
+        if (confirmBtn) {
+            confirmBtn.addEventListener('click', function () {
+                if (pendingDeleteForm) {
+                    pendingDeleteForm.submit();
+                }
+            });
+        }
+
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape' && modal && modal.classList.contains('show')) {
+                closeDeleteModal();
+            }
+        });
+    });
+    </script>
+    {% block extra_js %}{% endblock extra_js %}
+</body>
+
+</html>

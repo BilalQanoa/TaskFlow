@@ -459,6 +459,211 @@ button {
     margin-top: 12px;
 }
 
+.otp-verify-layout {
+    justify-content: center;
+}
+
+.otp-verify-card {
+    max-width: 520px;
+    width: 100%;
+    margin: 0 auto;
+    backdrop-filter: blur(22px);
+    background: linear-gradient(160deg, rgba(255, 255, 255, 0.72), rgba(248, 250, 252, 0.58));
+    border: 1px solid rgba(255, 255, 255, 0.55);
+    box-shadow: 0 28px 90px rgba(15, 23, 42, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.65);
+}
+
+.otp-verify-header p strong {
+    color: var(--secondary);
+}
+
+.otp-messages {
+    display: grid;
+    gap: 10px;
+    margin-bottom: 22px;
+}
+
+.otp-alert {
+    padding: 12px 14px;
+    border-radius: 14px;
+    font-size: 0.9rem;
+    border: 1px solid transparent;
+}
+
+.otp-alert-error,
+.otp-alert-danger {
+    background: rgba(220, 38, 38, 0.08);
+    border-color: rgba(220, 38, 38, 0.2);
+    color: #B91C1C;
+}
+
+.otp-alert-success {
+    background: rgba(5, 150, 105, 0.08);
+    border-color: rgba(5, 150, 105, 0.2);
+    color: #047857;
+}
+
+.otp-form {
+    display: grid;
+    gap: 18px;
+}
+
+.otp-digit-grid {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.otp-digit-field {
+    width: 100%;
+    aspect-ratio: 1;
+    min-height: 58px;
+    text-align: center;
+    font-size: 1.35rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    color: var(--secondary);
+    background: rgba(255, 255, 255, 0.55);
+    border: 1px solid rgba(148, 163, 184, 0.28);
+    border-radius: 18px;
+    backdrop-filter: blur(12px);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease, background 0.2s ease;
+}
+
+.otp-digit-field:focus {
+    outline: none;
+    border-color: rgba(37, 99, 235, 0.65);
+    background: rgba(255, 255, 255, 0.88);
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.85);
+    transform: translateY(-1px);
+}
+
+.otp-submit-btn {
+    margin-top: 4px;
+}
+
+.otp-resend-block {
+    margin-top: 22px;
+    padding-top: 18px;
+    border-top: 1px solid rgba(148, 163, 184, 0.16);
+    display: grid;
+    gap: 10px;
+    justify-items: center;
+    text-align: center;
+}
+
+.otp-resend-status {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.92rem;
+}
+
+.otp-resend-form {
+    margin: 0;
+}
+
+.otp-resend-btn {
+    border: none;
+    background: transparent;
+    color: var(--primary);
+    font-weight: 700;
+    font-size: 0.92rem;
+    cursor: pointer;
+    padding: 6px 10px;
+    border-radius: 999px;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.otp-resend-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.otp-resend-btn:not(:disabled):hover {
+    transform: translateY(-1px);
+    text-decoration: underline;
+}
+
+.otp-verify-footer {
+    text-align: center;
+}
+
+.activation-layout {
+    justify-content: center;
+}
+
+.activation-card {
+    max-width: 540px;
+    width: 100%;
+    margin: 0 auto;
+    backdrop-filter: blur(22px);
+    background: linear-gradient(160deg, rgba(255, 255, 255, 0.72), rgba(248, 250, 252, 0.58));
+    border: 1px solid rgba(255, 255, 255, 0.55);
+    box-shadow: 0 28px 90px rgba(15, 23, 42, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.65);
+}
+
+.activation-card--error {
+    text-align: center;
+}
+
+.activation-header p strong {
+    color: var(--secondary);
+}
+
+.activation-email-chip {
+    display: grid;
+    gap: 6px;
+    margin-bottom: 24px;
+    padding: 16px 18px;
+    border-radius: 18px;
+    background: rgba(37, 99, 235, 0.06);
+    border: 1px solid rgba(37, 99, 235, 0.14);
+}
+
+.activation-email-label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--primary-strong);
+}
+
+.activation-email-chip strong {
+    color: var(--secondary);
+    font-size: 1rem;
+}
+
+.activation-form {
+    display: grid;
+    gap: 4px;
+}
+
+.activation-password {
+    width: 100%;
+    padding: 14px 18px;
+    font-size: 0.95rem;
+    font-family: inherit;
+    color: var(--text);
+    background: rgba(255, 255, 255, 0.55);
+    border: 1px solid rgba(148, 163, 184, 0.28);
+    border-radius: 16px;
+    backdrop-filter: blur(12px);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease, background 0.2s ease;
+}
+
+.activation-password:focus {
+    outline: none;
+    border-color: rgba(37, 99, 235, 0.65);
+    background: rgba(255, 255, 255, 0.88);
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.85);
+    transform: translateY(-1px);
+}
+
+.activation-error-actions {
+    margin-top: 8px;
+}
+
 .profile-page-shell {
     padding-top: 28px;
 }

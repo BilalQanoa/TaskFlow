@@ -26,7 +26,7 @@ Register - TaskFlow AI
                     <p>Create your company account and set up your first polished workspace.</p>
                 </div>
 
-                <form method="POST" autocomplete="off">
+                <form method="POST" action="{% url 'accounts:register' %}" autocomplete="off">
                     {% csrf_token %}
 
                     {% if form.non_field_errors %}

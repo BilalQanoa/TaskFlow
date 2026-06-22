@@ -42,10 +42,13 @@ def admin_dashboard(request):
     company = request.user.company
     teams = Team.objects.filter(company=company)
     employees = User.objects.filter(company=company)
-    active_tasks = Task.objects.filter(company=company).exclude(status='completed')
-    completed_tasks = Task.objects.filter(company=company, status='completed')
+    active_tasks = Task.objects.filter(company=company, parent_task__isnull=True).exclude(status='done')
+    completed_tasks = Task.objects.filter(company=company, parent_task__isnull=True, status='done')
     recent_activities = ActivityLog.objects.filter(company=company)[:4]
-    upcoming_deadlines = Task.objects.filter(company=company, due_date__gte=date.today()).order_by('due_date', 'priority')[:4]
+    upcoming_deadlines = (
+        Task.objects.filter(company=company, parent_task__isnull=True, due_date__gte=date.today())
+        .order_by('due_date', 'priority')[:4]
+    )
 
     for task in upcoming_deadlines:
         task.priority_label = task.get_priority_display()

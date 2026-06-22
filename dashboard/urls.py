@@ -5,6 +5,7 @@ from . import views
 app_name = 'dashboard'
 
 urlpatterns = [
+    path('redirect/', views.redirect_router, name='redirect_router'),
     path('', views.admin_dashboard, name='dashboard'),
     path('teams/', views.TeamsListView.as_view(), name='teams'),
     path('teams/create/', views.CreateTeamView.as_view(), name='create_team'),
@@ -14,9 +15,10 @@ urlpatterns = [
     path('teams/<int:pk>/delete/', views.delete_team, name='delete_team'),
     path('teams/<int:team_id>/remove-member/<int:user_id>/', views.remove_team_member, name='remove_team_member'),
     path('tasks/', views.tasks_view, name='tasks'),
-    path('employees/', views.employees_page, name='employees'),
+    path('employees/', views.employees_view, name='employees'),
     path('employees/<int:employee_id>/delete/', views.delete_employee, name='delete_employee'),
-    path('discussions/', views.discussions_page, name='discussions'),
+    path('discussions/', views.discussions_view, name='discussions'),
+    path('discussions/<int:team_id>/', views.discussions_view, name='discussions_team'),
     path('settings/', views.settings_view, name='settings'),
     path('profile/', views.profile_page, name='profile'),
 ]

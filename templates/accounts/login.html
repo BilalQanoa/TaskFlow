@@ -26,7 +26,7 @@ Login - TaskFlow AI
                     <p>Enter your credentials to reopen your workspace and continue building.</p>
                 </div>
 
-                <form method="POST">
+                <form method="POST" action="{% url 'accounts:login' %}">
                     {% csrf_token %}
 
                     {% if form.non_field_errors %}

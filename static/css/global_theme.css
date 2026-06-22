@@ -1,0 +1,153 @@
+/* Global Design Tokens for TaskFlow AI */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+:root {
+  /* Color Palette */
+  --primary-color: #2563EB;
+  --primary-hover: #1D4ED8;
+  --bg-light: #F8FAFC;
+  --bg-dark: #0F172A;
+  --text-heading: #1E293B;
+  --text-body: #475569;
+  --border-color: rgba(226, 232, 240, 0.8);
+  
+  /* Typography */
+  --font-family-base: 'Inter', sans-serif;
+  
+  /* Card / Container (Sophisticated Adaptive Minimalism) */
+  --glass-bg: rgba(255, 255, 255, 0.85);
+  --glass-blur: blur(12px);
+  --glass-border: 1px solid var(--border-color);
+  --glass-radius: 1rem;
+  --glass-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.03);
+
+  /* Form Elements */
+  --input-radius: 0.5rem;
+  --input-padding: 0.75rem 1rem;
+  --input-bg: #F8FAFC;
+  --focus-ring: 0 0 0 2px rgba(37, 99, 235, 0.2);
+  
+  /* Transitions */
+  --transition-fast: all 0.3s ease;
+}
+
+[data-theme="dark"], .dark-mode {
+  --bg-light: #0F172A;
+  --text-heading: #F8FAFC;
+  --text-body: #CBD5E1;
+  --border-color: rgba(51, 65, 85, 0.8);
+  --glass-bg: rgba(15, 23, 42, 0.85);
+  --glass-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.3);
+  --input-bg: #1E293B;
+}
+
+/* Global Typography & Body */
+body {
+  font-family: var(--font-family-base) !important;
+  background: var(--bg-light) !important;
+  color: var(--text-body) !important;
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: var(--text-heading);
+  font-weight: 600;
+}
+
+/* Unified Container & Card Styles */
+.card, .glass-panel, .dashboard-card, 
+.sidebar, .team-leader-sidebar, .member-sidebar,
+.main-panel, .team-leader-panel, .member-main,
+.feature-card, .trust-card, .workflow-step, .board-column,
+.settings-panel, .profile-card {
+  background: var(--glass-bg) !important;
+  backdrop-filter: var(--glass-blur) !important;
+  -webkit-backdrop-filter: var(--glass-blur) !important;
+  border: var(--glass-border) !important;
+  border-radius: var(--glass-radius) !important;
+  box-shadow: var(--glass-shadow) !important;
+}
+
+/* Unified Buttons */
+.button-primary, .btn-primary, .btn, button[type="submit"] {
+  background-color: var(--primary-color) !important;
+  color: #ffffff !important;
+  border: none !important;
+  border-radius: var(--input-radius) !important;
+  padding: 0.5rem 1rem !important;
+  font-family: var(--font-family-base) !important;
+  font-weight: 500 !important;
+  transition: var(--transition-fast) !important;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-decoration: none !important;
+}
+
+.button-primary:hover, .btn-primary:hover, .btn:hover, button[type="submit"]:hover {
+  background-color: var(--primary-hover) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2) !important;
+}
+
+.button-secondary, .btn-secondary {
+  background-color: transparent !important;
+  color: var(--primary-color) !important;
+  border: 1px solid var(--primary-color) !important;
+  border-radius: var(--input-radius) !important;
+  padding: 0.5rem 1rem !important;
+  font-family: var(--font-family-base) !important;
+  font-weight: 500 !important;
+  transition: var(--transition-fast) !important;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-decoration: none !important;
+}
+
+.button-secondary:hover, .btn-secondary:hover {
+  background-color: rgba(37, 99, 235, 0.05) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* Unified Form Fields */
+input[type="text"], input[type="email"], input[type="password"], 
+input[type="number"], select, textarea, .form-control {
+  font-family: var(--font-family-base) !important;
+  border: 1px solid rgba(203, 213, 225, 1) !important; /* Slate 300 */
+  border-radius: var(--input-radius) !important;
+  padding: var(--input-padding) !important;
+  background-color: var(--input-bg) !important;
+  color: var(--text-heading) !important;
+  transition: all var(--transition-fast) !important;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+input:focus, select:focus, textarea:focus, .form-control:focus {
+  outline: none !important;
+  border-color: var(--primary-color) !important;
+  box-shadow: var(--focus-ring) !important;
+}
+
+/* Global Nav/Links */
+a {
+  color: var(--primary-color);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+a:hover {
+  color: var(--primary-hover);
+}
+
+.nav-links a {
+  color: var(--text-body);
+}
+
+.nav-links a:hover, .nav-links a.active {
+  color: var(--primary-color);
+}

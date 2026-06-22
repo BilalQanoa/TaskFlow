@@ -155,6 +155,7 @@
                             <th>Email</th>
                             <th>Title</th>
                             <th>Role</th>
+                            <th>Status</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -173,16 +174,21 @@
                             <td>{{ employee.email }}</td>
                             <td>{{ employee.job_title|default:'Member' }}</td>
                             <td>
-                                {% if employee.role == 'company' or employee.is_superuser %}
-                                <span class="role-badge role-owner">Owner</span>
-                                {% elif employee.role == 'team_leader' %}
+                                {% if employee.role == 'team_leader' %}
                                 <span class="role-badge role-leader">Leader</span>
                                 {% else %}
                                 <span class="role-badge role-member">Member</span>
                                 {% endif %}
                             </td>
                             <td>
-                                {% if employee.id != user.id and not employee.is_superuser and employee.role != 'company' %}
+                                {% if employee.invitation_status == 'pending' or not employee.is_active %}
+                                <span class="role-badge role-pending">Pending</span>
+                                {% else %}
+                                <span class="role-badge role-active">Active</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if employee.id != user.id %}
                                 <form method="POST" action="{% url 'dashboard:delete_employee' employee.id %}"
                                     class="delete-form">
                                     {% csrf_token %}
@@ -206,7 +212,7 @@
                         {% endwith %}
                         {% empty %}
                         <tr>
-                            <td colspan="5" class="empty-state-row">
+                            <td colspan="6" class="empty-state-row">
                                 {% if search_query %}
                                 No employees found matching "{{ search_query }}". Try a different search term.
                                 {% else %}
@@ -224,7 +230,7 @@
             <div class="section-header sidebar-header">
                 <div>
                     <p class="eyebrow">Add New Employee</p>
-                    <h2>Invite a teammate</h2>
+                    <h2>Create employee account</h2>
                 </div>
             </div>
 
@@ -232,9 +238,15 @@
                 {% csrf_token %}
 
                 <div class="glass-field">
-                    <label for="full_name">Full Name</label>
-                    <input id="full_name" name="full_name" type="text" class="glass-input"
-                        value="{{ form_data.full_name }}" required>
+                    <label for="first_name">First Name</label>
+                    <input id="first_name" name="first_name" type="text" class="glass-input"
+                        value="{{ form_data.first_name }}" required>
+                </div>
+
+                <div class="glass-field">
+                    <label for="last_name">Last Name</label>
+                    <input id="last_name" name="last_name" type="text" class="glass-input"
+                        value="{{ form_data.last_name }}" required>
                 </div>
 
                 <div class="glass-field">
@@ -259,7 +271,7 @@
                     </select>
                 </div>
 
-                <button type="submit" class="btn-glass-primary btn-with-spacing">Add Employee</button>
+                <button type="submit" class="btn-glass-primary btn-with-spacing">Create &amp; Send Credentials</button>
             </form>
         </aside>
     </section>

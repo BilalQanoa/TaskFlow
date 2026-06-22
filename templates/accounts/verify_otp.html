@@ -1,0 +1,181 @@
+{% extends "accounts/accounts.html" %}
+
+{% block title %}
+Verify Code - TaskFlow AI
+{% endblock title %}
+
+{% block content %}
+<header class="site-header">
+    <div class="page-shell">
+        <nav class="navbar">
+            <a href="/" class="brand">
+                <div class="brand-mark"><span></span></div>
+                <span class="brand-title">TaskFlow AI</span>
+            </a>
+        </nav>
+    </div>
+</header>
+
+<div class="page-shell">
+    <main class="auth-container otp-verify-layout">
+        <div class="otp-verify-card auth-card">
+            <div class="auth-header otp-verify-header">
+                <span class="eyebrow">Secure verification</span>
+                <h1>Enter your 6-digit code</h1>
+                <p>We sent a one-time verification code to <strong>{{ user.email }}</strong>. It expires in 5 minutes.</p>
+            </div>
+
+            {% if messages %}
+            <div class="otp-messages">
+                {% for message in messages %}
+                <div class="otp-alert otp-alert-{{ message.tags|default:'info' }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <form method="POST" action="{% url 'accounts:verify_otp' %}" id="otp-form" class="otp-form" novalidate>
+                {% csrf_token %}
+                <input type="hidden" name="otp_code" id="otp_code" value="">
+
+                <div class="otp-digit-grid" role="group" aria-label="6-digit verification code">
+                    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="otp-digit-field" data-index="0" autocomplete="one-time-code" aria-label="Digit 1">
+                    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="otp-digit-field" data-index="1" aria-label="Digit 2">
+                    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="otp-digit-field" data-index="2" aria-label="Digit 3">
+                    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="otp-digit-field" data-index="3" aria-label="Digit 4">
+                    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="otp-digit-field" data-index="4" aria-label="Digit 5">
+                    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="otp-digit-field" data-index="5" aria-label="Digit 6">
+                </div>
+
+                <button type="submit" class="hero-cta auth-submit otp-submit-btn">Verify &amp; Continue</button>
+            </form>
+
+            <div class="otp-resend-block">
+                <p id="resend-status" class="otp-resend-status">
+                    Didn't receive the code?
+                    <span id="resend-countdown">Resend available in <strong>60</strong>s</span>
+                </p>
+                <form method="POST" action="{% url 'accounts:resend_otp' %}" id="resend-form" class="otp-resend-form">
+                    {% csrf_token %}
+                    <button type="submit" id="resend-btn" class="otp-resend-btn" disabled>Resend Code</button>
+                </form>
+            </div>
+
+            <div class="auth-footer otp-verify-footer">
+                <a href="{% url 'accounts:login' %}">Back to login</a>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+(function () {
+    const form = document.getElementById('otp-form');
+    const hiddenInput = document.getElementById('otp_code');
+    const digitFields = Array.from(document.querySelectorAll('.otp-digit-field'));
+    const resendBtn = document.getElementById('resend-btn');
+    const resendCountdown = document.getElementById('resend-countdown');
+    const resendSeconds = {{ resend_seconds_remaining|default:0 }};
+    let countdown = resendSeconds;
+    let countdownTimer = null;
+
+    function syncHiddenCode() {
+        hiddenInput.value = digitFields.map((field) => field.value.replace(/\D/g, '')).join('');
+    }
+
+    function focusField(index) {
+        if (index >= 0 && index < digitFields.length) {
+            digitFields[index].focus();
+            digitFields[index].select();
+        }
+    }
+
+    function handleInput(event) {
+        const field = event.target;
+        const index = Number(field.dataset.index);
+        const digit = field.value.replace(/\D/g, '').slice(-1);
+        field.value = digit;
+        syncHiddenCode();
+
+        if (digit && index < digitFields.length - 1) {
+            focusField(index + 1);
+        }
+
+        if (digit && index === digitFields.length - 1 && hiddenInput.value.length === 6) {
+            form.requestSubmit();
+        }
+    }
+
+    function handleKeyDown(event) {
+        const field = event.target;
+        const index = Number(field.dataset.index);
+
+        if (event.key === 'Backspace' && !field.value && index > 0) {
+            focusField(index - 1);
+            return;
+        }
+
+        if (event.key === 'ArrowLeft' && index > 0) {
+            event.preventDefault();
+            focusField(index - 1);
+        }
+
+        if (event.key === 'ArrowRight' && index < digitFields.length - 1) {
+            event.preventDefault();
+            focusField(index + 1);
+        }
+    }
+
+    function handlePaste(event) {
+        event.preventDefault();
+        const pasted = (event.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '').slice(0, 6);
+        if (!pasted) {
+            return;
+        }
+
+        pasted.split('').forEach((char, index) => {
+            if (digitFields[index]) {
+                digitFields[index].value = char;
+            }
+        });
+
+        syncHiddenCode();
+
+        if (pasted.length === 6) {
+            form.requestSubmit();
+        } else {
+            focusField(Math.min(pasted.length, digitFields.length - 1));
+        }
+    }
+
+    function updateResendState() {
+        if (countdown > 0) {
+            resendBtn.disabled = true;
+            resendCountdown.hidden = false;
+            resendCountdown.innerHTML = 'Resend available in <strong>' + countdown + '</strong>s';
+            countdown -= 1;
+        } else {
+            resendBtn.disabled = false;
+            resendCountdown.hidden = true;
+            clearInterval(countdownTimer);
+        }
+    }
+
+    digitFields.forEach((field) => {
+        field.addEventListener('input', handleInput);
+        field.addEventListener('keydown', handleKeyDown);
+        field.addEventListener('paste', handlePaste);
+    });
+
+    form.addEventListener('submit', function () {
+        syncHiddenCode();
+    });
+
+    if (resendBtn && resendCountdown) {
+        updateResendState();
+        countdownTimer = setInterval(updateResendState, 1000);
+    }
+
+    focusField(0);
+})();
+</script>
+{% endblock content %}

@@ -5,53 +5,7 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css">
-<style>
-    .searchable-select-wrap .select2-container--default .select2-selection--single {
-        height: 48px;
-        border-radius: 14px;
-        border: 1px solid rgba(148, 163, 184, 0.28);
-        background: rgba(255, 255, 255, 0.92);
-        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
-        display: flex;
-        align-items: center;
-        transition: border-color 0.2s ease, box-shadow 0.2s ease;
-    }
-
-    .searchable-select-wrap .select2-container--default .select2-selection--single .select2-selection__rendered {
-        line-height: 46px;
-        padding-left: 14px;
-        color: var(--text);
-        font-size: 0.95rem;
-    }
-
-    .searchable-select-wrap .select2-container--default .select2-selection--single .select2-selection__arrow {
-        height: 46px;
-        right: 10px;
-    }
-
-    .searchable-select-wrap .select2-container--default.select2-container--focus .select2-selection--single,
-    .searchable-select-wrap .select2-container--default.select2-container--open .select2-selection--single {
-        border-color: rgba(37, 99, 235, 0.45);
-        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
-    }
-
-    .select2-container--default .select2-results__option--highlighted.select2-results__option--selectable {
-        background: linear-gradient(135deg, rgba(37, 99, 235, 0.92), rgba(6, 182, 212, 0.88));
-    }
-
-    .select2-dropdown {
-        border-radius: 14px;
-        border: 1px solid rgba(148, 163, 184, 0.22);
-        box-shadow: 0 18px 48px rgba(15, 23, 42, 0.14);
-        overflow: hidden;
-    }
-
-    .select2-container--default .select2-search--dropdown .select2-search__field {
-        border-radius: 10px;
-        border: 1px solid rgba(148, 163, 184, 0.28);
-        padding: 8px 12px;
-    }
-</style>
+<link rel="stylesheet" href="{% static 'css/dashboard_styles.css' %}">
 {% endblock extra_css %}
 
 {% block content %}
@@ -204,13 +158,5 @@
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script src="{% static 'js/teams.js' %}"></script>
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        $('.searchable-select').select2({
-            placeholder: 'Search teammate by name or title...',
-            allowClear: true,
-            width: '100%'
-        });
-    });
-</script>
+<script src="{% static 'js/team_detail.js' %}"></script>
 {% endblock extra_js %}

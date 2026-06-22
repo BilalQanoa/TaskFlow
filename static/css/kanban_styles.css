@@ -1,0 +1,9 @@
+/* Kanban Board Styles */
+/* Override tl-workspace background for member theme integration if needed */
+.tl-workspace { padding: 0; }
+
+/* Block dropping to done */
+.tl-trello-cards--droppable[data-drop-status="done"] {
+    background: rgba(255,0,0,0.05);
+    border: 1px dashed rgba(255,0,0,0.2);
+}

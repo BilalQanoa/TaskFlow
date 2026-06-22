@@ -132,8 +132,12 @@
             <article class="task-card">
                 <div class="task-card-header">
                     <h3 class="task-card-title">{{ task.title }}</h3>
-                    {% if task.status == 'completed' %}
-                    <span class="task-status-badge task-status-badge--completed">Completed</span>
+                    {% if task.status == 'done' %}
+                    <span class="task-status-badge task-status-badge--completed">Done</span>
+                    {% elif task.status == 'under_review' %}
+                    <span class="task-status-badge task-status-badge--review">Under Review</span>
+                    {% elif task.status == 'todo' %}
+                    <span class="task-status-badge task-status-badge--todo">To Do</span>
                     {% else %}
                     <span class="task-status-badge task-status-badge--progress">In Progress</span>
                     {% endif %}
@@ -159,19 +163,19 @@
                 <div class="task-progress-block">
                     <div class="task-progress-label">
                         <span>Progress</span>
-                        <span class="task-progress-value">{{ task.progress_percentage }}%</span>
+                        <span class="task-progress-value">{{ task.display_progress }}%</span>
                     </div>
                     <div class="task-progress-track" role="progressbar"
-                        aria-valuenow="{{ task.progress_percentage }}" aria-valuemin="0" aria-valuemax="100"
+                        aria-valuenow="{{ task.display_progress }}" aria-valuemin="0" aria-valuemax="100"
                         aria-label="Task progress">
-                        <div class="task-progress-fill" style="width: {{ task.progress_percentage }}%;"></div>
+                        <div class="task-progress-fill" style="width: {{ task.display_progress }}%;"></div>
                     </div>
                 </div>
 
                 <div class="task-timeline">
                     <span class="task-meta-label">Due Date</span>
                     {% if task.due_date %}
-                    <time class="task-due-date{% if task.status != 'completed' and task.due_date < today %} task-due-date--overdue{% endif %}"
+                    <time class="task-due-date{% if task.status != 'done' and task.due_date < today %} task-due-date--overdue{% endif %}"
                         datetime="{{ task.due_date|date:'Y-m-d' }}">
                         {{ task.due_date|date:"M d, Y" }}
                     </time>

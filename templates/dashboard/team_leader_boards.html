@@ -1,0 +1,356 @@
+{% extends 'dashboard/team_leader_base.html' %}
+
+{% block title %}Boards | Team Leader | TaskFlow AI{% endblock title %}
+
+{% block page_heading %}Kanban Boards{% endblock page_heading %}
+
+{% block content %}
+<div class="tl-workspace">
+    {% if not has_teams %}
+    <div class="tl-warning-notice tl-glass-card" role="alert">
+        <div class="tl-warning-icon" aria-hidden="true">!</div>
+        <div>
+            <h3>No Teams Assigned</h3>
+            <p>There are no teams assigned to you yet. Please review this with the Company Owner.</p>
+        </div>
+    </div>
+    {% else %}
+    <section class="tl-glass-card tl-section-card tl-trello-board-wrap">
+        {% if main_task %}
+        <div class="tl-epic-header">
+            <span class="tl-epic-badge">Assignment: {{ main_task.title }}</span>
+            <span class="tl-epic-progress-label">Team Epic Progress: {{ epic_team_progress }}%</span>
+            <div class="tl-progress-bar tl-epic-progress-bar"><span style="width: {{ epic_team_progress }}%;"></span></div>
+        </div>
+        {% endif %}
+
+        <div class="tl-section-header tl-board-toolbar">
+            <div>
+                <p class="eyebrow">Workflow Grid</p>
+                <h3>{% if is_editable %}My Board{% else %}{{ board_member.get_full_name|default:board_member.username }}'s Board{% endif %}</h3>
+                <p class="tl-section-sub">
+                    {% if is_editable %}
+                    Micro-track checklist items on your personal Kanban cards.
+                    {% else %}
+                    Read-only supervision view for this team member's Kanban cards.
+                    {% endif %}
+                </p>
+            </div>
+            <div class="tl-board-filters">
+                {% if main_tasks %}
+                <div class="tl-board-filter">
+                    <label for="mainTaskFilter">Epic Main Task</label>
+                    <select id="mainTaskFilter" class="tl-input" onchange="window.location.href='?main_task=' + this.value">
+                        {% for epic in main_tasks %}
+                        <option value="{{ epic.id }}"{% if main_task and main_task.id == epic.id %} selected{% endif %}>{{ epic.title }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% endif %}
+                <div class="tl-board-filter">
+                    <label for="memberFilter">All Team Members</label>
+                    <select id="memberFilter" name="member" class="tl-input" aria-label="All Team Members">
+                        {% for member in filterable_members %}
+                        <option value="{{ member.id }}"{% if selected_member_id == member.id|stringformat:"s" %} selected{% endif %}>
+                            {% if member.id == user.id %}My Board (You){% else %}{{ member.get_full_name|default:member.username }}{% endif %}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        {% if not main_task %}
+        <p class="tl-empty-state">No epic main tasks are assigned to your teams yet. Your company owner can create milestones from the Tasks module.</p>
+        {% else %}
+        <div class="tl-kanban-grid tl-trello-grid" id="kanbanBoard" data-editable="{{ is_editable|yesno:'true,false' }}">
+            {% for column in kanban_columns %}
+            <div class="tl-kanban-column tl-trello-column" data-status="{{ column.key }}">
+                
+                <header class="tl-kanban-column-head">
+                    <h4>{{ column.label }}</h4>
+                    <span class="tl-kanban-count">{{ column.cards|length }}</span>
+                </header>
+
+                {% if column.key == 'todo' or column.key == 'in_progress' or column.key == 'done' %}
+                <button type="button" class="tl-add-card-btn" data-add-status="{{ column.key }}"
+                    aria-label="Add card to {{ column.label }}">
+                    + Add Card
+                </button>
+                {% endif %}
+
+                <div class="tl-kanban-cards tl-trello-cards{% if is_editable %} tl-trello-cards--droppable{% endif %}"
+                    data-drop-status="{{ column.key }}">
+                    {% for card in column.cards %}
+                    <article class="tl-kanban-card tl-trello-card{% if is_editable %} tl-trello-card--draggable{% endif %}"
+                        {% if is_editable %}draggable="true" data-card-id="{{ card.id }}"{% endif %}>
+                        <div class="tl-kanban-card-head">
+                            <h5>{{ card.title }}</h5>
+                            {% if is_editable %}
+                            <form method="POST" action="{% url 'management:delete_kanban_card' card.id %}" class="tl-kanban-card-delete-form">
+                                {% csrf_token %}
+                                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                {% if main_task %}<input type="hidden" name="main_task_id" value="{{ main_task.id }}">{% endif %}
+                                <button type="button" class="tl-kanban-card-delete-btn js-delete-trigger" aria-label="Delete card" title="Delete card">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                        <polyline points="3 6 5 6 21 6"></polyline>
+                                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                    </svg>
+                                </button>
+                            </form>
+                            {% endif %}
+                        </div>
+                        {% if card.description %}
+                        <p class="tl-kanban-desc">{{ card.description|truncatechars:100 }}</p>
+                        {% endif %}
+
+                        {% if card.checklists.all %}
+                        <ul class="tl-checklist">
+                            {% for item in card.checklists.all %}
+                            <li class="tl-checklist-item">
+                                {% if is_editable %}
+                                <div class="tl-checklist-row">
+                                    <form method="POST" action="{% url 'management:toggle_checklist_item' item.id %}" class="tl-checklist-form">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                        <label class="tl-checklist-label">
+                                            <input type="checkbox" name="is_completed" value="on" class="tl-checklist-checkbox"{% if item.is_completed %} checked{% endif %} onchange="this.form.submit()">
+                                            <span class="tl-checklist-text{% if item.is_completed %} tl-checklist-text--done{% endif %}">{{ item.title }}</span>
+                                        </label>
+                                    </form>
+                                    <form method="POST" action="{% url 'management:delete_checklist_item' item.id %}" class="tl-checklist-delete-form">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                        <button type="button" class="tl-checklist-delete-btn js-delete-trigger" aria-label="Delete checklist item" title="Delete item">&times;</button>
+                                    </form>
+                                </div>
+                                {% else %}
+                                <span class="tl-checklist-readonly{% if item.is_completed %} tl-checklist-text--done{% endif %}">{{ item.title }}</span>
+                                {% endif %}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        {% endif %}
+
+                        <div class="tl-kanban-card-meta">
+                            <span>{{ card.assigned_to.get_full_name|default:card.assigned_to.username }}</span>
+                        </div>
+
+                        {% if is_editable %}
+                        {% if card.status == 'todo' or card.status == 'in_progress' %}
+                        <form method="POST" action="{% url 'management:mark_kanban_card_for_review' card.id %}" class="tl-kanban-inline-form">
+                            {% csrf_token %}
+                            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                            <button type="submit" class="tl-btn-ghost tl-btn-sm">Send to Review</button>
+                        </form>
+                        {% endif %}
+                        {% elif not is_editable and card.status == 'under_review' and card.main_task.team_id in led_team_ids %}
+                        <div class="tl-kanban-review-actions">
+                            <form method="POST" action="{% url 'management:review_kanban_card' card.id %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="approve">
+                                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                <button type="submit" class="tl-btn-success tl-btn-sm">Approve</button>
+                            </form>
+                            <form method="POST" action="{% url 'management:review_kanban_card' card.id %}" class="tl-kanban-reject-form">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="reject">
+                                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                <input type="text" name="review_notice" class="tl-review-input" placeholder="Revision notes">
+                                <button type="submit" class="tl-btn-danger tl-btn-sm">Reject</button>
+                            </form>
+                        </div>
+                        {% endif %}
+                    </article>
+                    {% endfor %}
+                </div>
+
+                {% if is_editable %}
+                
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </section>
+    {% endif %}
+</div>
+
+{% if is_editable and main_task %}
+<div id="addCardBackdrop" class="tl-modal-backdrop" aria-hidden="true"></div>
+<div id="addCardModal" class="tl-modal" role="dialog" aria-modal="true" aria-labelledby="add-card-title" aria-hidden="true">
+    <div class="tl-modal-card tl-glass-card">
+        <div class="tl-section-header">
+            <div>
+                <p class="eyebrow">New Card</p>
+                <h3 id="add-card-title">Add to <span id="addCardColumnLabel">To Do</span></h3>
+            </div>
+            <button type="button" class="tl-modal-close" data-close-add-card aria-label="Close">&times;</button>
+        </div>
+
+        <form method="POST" action="{% url 'management:create_board_card' %}" class="tl-modal-form" id="addCardForm">
+            {% csrf_token %}
+            <input type="hidden" name="status" id="addCardStatus" value="todo">
+            <input type="hidden" name="main_task_id" value="{{ main_task.id }}">
+            <div class="tl-form-field">
+                <label for="add_card_title">Card Title</label>
+                <input id="add_card_title" name="title" type="text" class="tl-input" placeholder="What needs to be done?" required>
+            </div>
+            <div class="tl-form-field">
+                <label for="add_card_description">Description</label>
+                <textarea id="add_card_description" name="description" class="tl-input tl-textarea" rows="3" placeholder="Optional details"></textarea>
+            </div>
+            <div class="tl-form-field">
+                <label for="add_checklist_items">Checklist Items</label>
+                <textarea id="add_checklist_items" name="checklist_items" class="tl-input tl-textarea" rows="4" placeholder="One checklist item per line"></textarea>
+            </div>
+            <button type="submit" class="tl-btn-primary tl-btn-full">Create Card</button>
+        </form>
+    </div>
+</div>
+
+<form method="POST" id="moveCardForm" class="visually-hidden" data-move-base="{% url 'management:move_board_card' 0 %}">
+    {% csrf_token %}
+    <input type="hidden" name="status" id="moveCardStatus" value="">
+    <input type="hidden" name="main_task_id" value="{{ main_task.id }}">
+</form>
+{% endif %}
+{% endblock content %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const boardsUrl = '{{ boards_url|escapejs }}';
+    const memberFilter = document.getElementById('memberFilter');
+    const mainTaskFilter = document.getElementById('mainTaskFilter');
+    const kanbanBoard = document.getElementById('kanbanBoard');
+    const isEditable = kanbanBoard && kanbanBoard.dataset.editable === 'true';
+
+    function buildBoardsUrl() {
+        const params = new URLSearchParams();
+        if (mainTaskFilter && mainTaskFilter.value) {
+            params.set('main_task', mainTaskFilter.value);
+        }
+        if (memberFilter && memberFilter.value) {
+            params.set('member', memberFilter.value);
+        }
+        const query = params.toString();
+        return query ? boardsUrl + '?' + query : boardsUrl;
+    }
+
+    if (memberFilter) {
+        memberFilter.addEventListener('change', function () {
+            window.location.href = buildBoardsUrl();
+        });
+    }
+
+    if (!isEditable) {
+        return;
+    }
+
+    const modal = document.getElementById('addCardModal');
+    const backdrop = document.getElementById('addCardBackdrop');
+    const statusInput = document.getElementById('addCardStatus');
+    const columnLabel = document.getElementById('addCardColumnLabel');
+    const moveForm = document.getElementById('moveCardForm');
+    const moveStatusInput = document.getElementById('moveCardStatus');
+
+    const columnLabels = {
+        todo: 'To Do',
+        in_progress: 'In Progress',
+        done: 'Done',
+    };
+
+    function openAddCardModal(status) {
+        if (!modal || !backdrop) return;
+        statusInput.value = status;
+        columnLabel.textContent = columnLabels[status] || status;
+        modal.classList.add('show');
+        backdrop.classList.add('show');
+        modal.setAttribute('aria-hidden', 'false');
+        backdrop.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('modal-open');
+        const titleInput = document.getElementById('add_card_title');
+        if (titleInput) titleInput.focus();
+    }
+
+    function closeAddCardModal() {
+        if (!modal || !backdrop) return;
+        modal.classList.remove('show');
+        backdrop.classList.remove('show');
+        modal.setAttribute('aria-hidden', 'true');
+        backdrop.setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('modal-open');
+    }
+
+    document.querySelectorAll('.tl-add-card-btn').forEach(function (button) {
+        button.addEventListener('click', function () {
+            openAddCardModal(button.dataset.addStatus);
+        });
+    });
+
+    document.querySelectorAll('[data-close-add-card]').forEach(function (button) {
+        button.addEventListener('click', closeAddCardModal);
+    });
+
+    if (backdrop) {
+        backdrop.addEventListener('click', closeAddCardModal);
+    }
+
+    document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape' && modal && modal.classList.contains('show')) {
+            closeAddCardModal();
+        }
+    });
+
+    let draggedCard = null;
+
+    document.querySelectorAll('.tl-trello-card--draggable').forEach(function (card) {
+        card.addEventListener('dragstart', function (event) {
+            draggedCard = card;
+            card.classList.add('tl-trello-card--dragging');
+            event.dataTransfer.effectAllowed = 'move';
+            event.dataTransfer.setData('text/plain', card.dataset.cardId);
+        });
+
+        card.addEventListener('dragend', function () {
+            card.classList.remove('tl-trello-card--dragging');
+            draggedCard = null;
+            document.querySelectorAll('.tl-trello-cards--drag-over').forEach(function (zone) {
+                zone.classList.remove('tl-trello-cards--drag-over');
+            });
+        });
+    });
+
+    document.querySelectorAll('.tl-trello-cards--droppable').forEach(function (dropZone) {
+        dropZone.addEventListener('dragover', function (event) {
+            event.preventDefault();
+            event.dataTransfer.dropEffect = 'move';
+            dropZone.classList.add('tl-trello-cards--drag-over');
+        });
+
+        dropZone.addEventListener('dragleave', function () {
+            dropZone.classList.remove('tl-trello-cards--drag-over');
+        });
+
+        dropZone.addEventListener('drop', function (event) {
+            event.preventDefault();
+            dropZone.classList.remove('tl-trello-cards--drag-over');
+            if (!draggedCard || !moveForm) return;
+
+            const cardId = draggedCard.dataset.cardId;
+            const newStatus = dropZone.dataset.dropStatus;
+            const currentColumn = draggedCard.closest('.tl-trello-column');
+            const currentStatus = currentColumn ? currentColumn.dataset.status : '';
+
+            if (!cardId || !newStatus || newStatus === currentStatus) return;
+
+            const moveBase = moveForm.dataset.moveBase || '';
+            moveForm.action = moveBase.replace('/0/', '/' + cardId + '/');
+            moveStatusInput.value = newStatus;
+            moveForm.submit();
+        });
+    });
+});
+</script>
+{% endblock extra_js %}

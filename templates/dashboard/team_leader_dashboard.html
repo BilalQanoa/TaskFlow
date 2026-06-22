@@ -1,0 +1,83 @@
+{% extends 'dashboard/team_leader_base.html' %}
+
+{% block title %}Overview | Team Leader | TaskFlow AI{% endblock title %}
+
+{% block page_heading %}Overview Hub{% endblock page_heading %}
+
+{% block content %}
+<div class="tl-workspace">
+    {% if not has_teams %}
+    <div class="tl-warning-notice tl-glass-card" role="alert">
+        <div class="tl-warning-icon" aria-hidden="true">!</div>
+        <div>
+            <h3>No Teams Assigned</h3>
+            <p>There are no teams assigned to you yet. Please review this with the Company Owner.</p>
+        </div>
+    </div>
+    {% else %}
+    <section class="tl-analytics-grid">
+        <article class="tl-glass-card tl-stat-card">
+            <p class="tl-stat-label">Active Tasks</p>
+            <h3>{{ metrics.active_tasks }}</h3>
+            <p class="tl-stat-foot">Open main and sub-tasks across your teams</p>
+        </article>
+        <article class="tl-glass-card tl-stat-card">
+            <p class="tl-stat-label">Completed Tasks</p>
+            <h3>{{ metrics.completed_tasks }}</h3>
+            <p class="tl-stat-foot">Successfully delivered work items</p>
+        </article>
+        <article class="tl-glass-card tl-stat-card">
+            <p class="tl-stat-label">Team Progress</p>
+            <h3>{{ metrics.team_progress_average }}%</h3>
+            <div class="tl-progress-bar"><span style="width: {{ metrics.team_progress_average }}%;"></span></div>
+        </article>
+        <article class="tl-glass-card tl-stat-card">
+            <p class="tl-stat-label">Active Members</p>
+            <h3>{{ metrics.active_team_members }}</h3>
+            <p class="tl-stat-foot">Across all assigned teams</p>
+        </article>
+    </section>
+
+    <section class="tl-glass-card tl-section-card">
+        <div class="tl-section-header">
+            <div>
+                <p class="eyebrow">Broadcast Feed</p>
+                <h3>Team Announcements</h3>
+            </div>
+            <a href="{% url 'management:team_leader_discussions' %}" class="tl-btn-ghost">Open Discussions</a>
+        </div>
+
+        {% if announcements %}
+        <ul class="tl-announcement-list">
+            {% for announcement in announcements %}
+            <li class="tl-announcement-item">
+                <div class="tl-announcement-meta">
+                    <strong>{{ announcement.sender.get_full_name|default:announcement.sender.username }}</strong>
+                    <span>{{ announcement.team.name }} · {{ announcement.timestamp|date:"M d, H:i" }}</span>
+                </div>
+                <p>{{ announcement.message_text }}</p>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="tl-empty-state">No team announcements yet. Post an update from the Discussions section.</p>
+        {% endif %}
+    </section>
+
+    <section class="tl-quick-links">
+        <a href="{% url 'management:team_leader_tasks' %}" class="tl-glass-card tl-quick-link-card">
+            <strong>Task Pipeline</strong>
+            <span>Decompose main tasks and delegate sub-tasks</span>
+        </a>
+        <a href="{% url 'management:team_leader_boards' %}" class="tl-glass-card tl-quick-link-card">
+            <strong>Kanban Boards</strong>
+            <span>Track workflow across To Do → Done columns</span>
+        </a>
+        <a href="{% url 'management:team_leader_teams' %}" class="tl-glass-card tl-quick-link-card">
+            <strong>My Teams</strong>
+            <span>View squads you lead or belong to</span>
+        </a>
+    </section>
+    {% endif %}
+</div>
+{% endblock content %}

@@ -1,0 +1,102 @@
+{% extends 'dashboard/member_base.html' %}
+
+{% block title %}My Dashboard | TaskFlow AI{% endblock title %}
+{% block page_heading %}My Dashboard{% endblock page_heading %}
+
+{% block content %}
+<div class="tl-workspace">
+
+    {% if not stats.total_cards %}
+    <div class="tl-warning-notice tl-glass-card" role="alert">
+        <div class="tl-warning-icon" aria-hidden="true">!</div>
+        <div>
+            <h3>No Cards Assigned Yet</h3>
+            <p>Your Team Leader will assign Kanban cards to you. Check back here once work begins.</p>
+        </div>
+    </div>
+    {% else %}
+    <section class="tl-analytics-grid">
+        <article class="tl-glass-card tl-stat-card">
+            <p class="tl-stat-label">Total Assigned</p>
+            <h3>{{ stats.total_cards }}</h3>
+            <p class="tl-stat-foot">Your complete card portfolio</p>
+        </article>
+        <article class="tl-glass-card tl-stat-card">
+            <p class="tl-stat-label">In Progress</p>
+            <h3>{{ stats.in_progress_count }}</h3>
+            <p class="tl-stat-foot">Cards you're currently working on</p>
+        </article>
+        <article class="tl-glass-card tl-stat-card">
+            <p class="tl-stat-label">Under Review</p>
+            <h3>{{ stats.under_review_count }}</h3>
+            <p class="tl-stat-foot">Pending leader approval</p>
+        </article>
+        <article class="tl-glass-card tl-stat-card">
+            <p class="tl-stat-label">Completion Rate</p>
+            <h3>{{ stats.completion_pct }}%</h3>
+            <div class="tl-progress-bar"><span style="width: {{ stats.completion_pct|default:0 }}%;"></span></div>
+            <p class="tl-stat-foot">{{ stats.done_count }} of {{ stats.total_cards }} cards closed</p>
+        </article>
+    </section>
+
+    <section class="tl-glass-card tl-section-card">
+        <div class="tl-section-header">
+            <div>
+                <p class="eyebrow">Status</p>
+                <h3>Card Breakdown</h3>
+            </div>
+            <a href="{% url 'management:member_board' %}" class="tl-btn-ghost">Open My Board</a>
+        </div>
+
+        <ul class="tl-announcement-list" style="margin-top: 1rem;">
+            {% if stats.todo_count %}
+            <li class="tl-announcement-item">
+                <div class="tl-announcement-meta">
+                    <strong>To Do</strong>
+                    <span>{{ stats.todo_count }} cards</span>
+                </div>
+            </li>
+            {% endif %}
+            {% if stats.in_progress_count %}
+            <li class="tl-announcement-item">
+                <div class="tl-announcement-meta">
+                    <strong>In Progress</strong>
+                    <span>{{ stats.in_progress_count }} cards</span>
+                </div>
+            </li>
+            {% endif %}
+            {% if stats.under_review_count %}
+            <li class="tl-announcement-item">
+                <div class="tl-announcement-meta">
+                    <strong>Under Review</strong>
+                    <span>{{ stats.under_review_count }} cards</span>
+                </div>
+            </li>
+            {% endif %}
+            {% if stats.done_count %}
+            <li class="tl-announcement-item">
+                <div class="tl-announcement-meta">
+                    <strong>Done</strong>
+                    <span>{{ stats.done_count }} cards</span>
+                </div>
+            </li>
+            {% endif %}
+        </ul>
+    </section>
+
+    <section class="tl-quick-links">
+        <a href="{% url 'management:member_board' %}" class="tl-glass-card tl-quick-link-card">
+            <strong>My Board</strong>
+            <span>Track your workflow and update statuses</span>
+        </a>
+        {% if teams %}
+        <a href="{% url 'management:member_discussions' %}" class="tl-glass-card tl-quick-link-card">
+            <strong>Discussions</strong>
+            <span>Communicate with your team and leader</span>
+        </a>
+        {% endif %}
+    </section>
+    {% endif %}
+
+</div>
+{% endblock content %}

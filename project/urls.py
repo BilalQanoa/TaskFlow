@@ -12,6 +12,12 @@ urlpatterns = [
     path('accounts/', include('accounts.urls')),
     path('companies/', include('companies.urls')),
     path('dashboard/', include(('dashboard.urls', 'dashboard'), namespace='dashboard')),
+    path('management/', include(('management.urls', 'management'), namespace='management')),
+    path(
+        'activate-employee/<uidb64>/<token>/',
+        dashboard_views.activate_employee,
+        name='activate_employee',
+    ),
 ]
 
 if settings.DEBUG:

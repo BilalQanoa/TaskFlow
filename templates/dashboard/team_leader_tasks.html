@@ -1,0 +1,167 @@
+{% extends 'dashboard/team_leader_base.html' %}
+
+{% block title %}Tasks | Team Leader | TaskFlow AI{% endblock title %}
+
+{% block page_heading %}Task Deconstruction{% endblock page_heading %}
+
+{% block content %}
+<div class="tl-workspace">
+    {% if not has_teams %}
+    <div class="tl-warning-notice tl-glass-card" role="alert">
+        <div class="tl-warning-icon" aria-hidden="true">!</div>
+        <div>
+            <h3>No Teams Assigned</h3>
+            <p>There are no teams assigned to you yet. Please review this with the Company Owner.</p>
+        </div>
+    </div>
+    {% else %}
+    <section class="tl-glass-card tl-section-card">
+        <div class="tl-section-header">
+            <div>
+                <p class="eyebrow">Task Pipeline</p>
+                <h3>Main Tasks</h3>
+                <p class="tl-section-sub">Expand a main task to delegate extracted sub-tasks to individual team members.</p>
+            </div>
+        </div>
+
+        {% if main_tasks_with_members %}
+        <div class="tl-task-grid">
+            {% for entry in main_tasks_with_members %}
+            {% with task=entry.task members=entry.members %}
+            <article class="tl-main-task-card">
+                <div class="tl-main-task-head">
+                    <div>
+                        <h4>{{ task.title }}</h4>
+                        <p>{{ task.description|default:"No description provided."|truncatechars:160 }}</p>
+                        <p class="tl-task-team-label">Team: {{ task.team.name }}</p>
+                    </div>
+                    <span class="tl-status-badge tl-status-{{ task.status }}">{{ task.get_status_display }}</span>
+                </div>
+
+                <div class="tl-main-task-meta">
+                    <span>Due {{ task.due_date|date:"M d, Y"|default:"TBD" }}</span>
+                    <span>{{ task.calculated_progress }}% complete</span>
+                </div>
+                <div class="tl-progress-bar"><span style="width: {{ task.calculated_progress }}%;"></span></div>
+
+                <div class="tl-subtask-accordion">
+                    <button type="button" class="tl-accordion-toggle" data-accordion-target="members-{{ task.id }}">
+                        Team Member Directory ({{ members|length }})
+                    </button>
+                    <div class="tl-accordion-panel" id="members-{{ task.id }}">
+                        {% for member in members %}
+                        <div class="tl-delegate-row">
+                            <div class="tl-member-identity">
+                                <div class="tl-member-initials">{{ member.get_full_name|default:member.username|slice:":1"|upper }}</div>
+                                <div>
+                                    <strong>{{ member.get_full_name|default:member.username }}</strong>
+                                    <span>{{ member.job_title|default:"Member" }} · {{ member.assigned_task_count }} active</span>
+                                </div>
+                            </div>
+
+                            {% if can_delegate and task.team_id in led_team_ids %}
+                            <form method="POST" action="{% url 'management:create_subtask' %}" class="tl-delegate-form">
+                                {% csrf_token %}
+                                <input type="hidden" name="parent_task_id" value="{{ task.id }}">
+                                <input type="hidden" name="assigned_to_id" value="{{ member.id }}">
+                                <input type="hidden" name="next" value="{{ tasks_next }}">
+                                <input type="text" name="title" class="tl-input tl-delegate-title" placeholder="Sub-task title" required>
+                                <input type="date" name="due_date" class="tl-input tl-delegate-date" required>
+                                <input type="text" name="description" class="tl-input tl-delegate-desc" placeholder="Optional notes">
+                                <button type="submit" class="tl-btn-primary tl-btn-sm">Delegate</button>
+                            </form>
+                            {% else %}
+                            <p class="tl-empty-inline">Delegation requires team leadership assignment.</p>
+                            {% endif %}
+                        </div>
+                        {% empty %}
+                        <p class="tl-empty-inline">No team members found for this squad.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="tl-subtask-accordion">
+                    <button type="button" class="tl-accordion-toggle" data-accordion-target="subtasks-{{ task.id }}">
+                        Existing Sub-Tasks ({{ task.subtasks.count }})
+                    </button>
+                    <div class="tl-accordion-panel" id="subtasks-{{ task.id }}">
+                        {% for subtask in task.subtasks.all %}
+                        <div class="tl-subtask-row">
+                            <div class="tl-subtask-main">
+                                <div class="tl-member-initials">
+                                    {{ subtask.assigned_to.get_full_name|default:subtask.assigned_to.username|slice:":1"|upper }}
+                                </div>
+                                <div>
+                                    <strong>{{ subtask.title }}</strong>
+                                    <p>{{ subtask.assigned_to.get_full_name|default:subtask.assigned_to.username }} · Due {{ subtask.due_date|date:"M d"|default:"—" }}</p>
+                                    {% if subtask.review_notice %}
+                                    <p class="tl-review-notice">{{ subtask.review_notice }}</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="tl-subtask-actions">
+                                <span class="tl-status-badge tl-status-{{ subtask.status }}">{{ subtask.get_status_display }}</span>
+                                {% if can_delegate and task.team_id in led_team_ids %}
+                                {% if subtask.status == 'todo' or subtask.status == 'in_progress' %}
+                                <form method="POST" action="{% url 'management:mark_subtask_for_review' subtask.id %}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="next" value="{{ tasks_next }}">
+                                    <button type="submit" class="tl-btn-ghost">Send to Review</button>
+                                </form>
+                                {% endif %}
+                                {% if subtask.status == 'under_review' %}
+                                <form method="POST" action="{% url 'management:review_subtask' subtask.id %}" class="tl-review-form">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="approve">
+                                    <input type="hidden" name="next" value="{{ tasks_next }}">
+                                    <button type="submit" class="tl-btn-success">Approve</button>
+                                </form>
+                                <form method="POST" action="{% url 'management:review_subtask' subtask.id %}" class="tl-review-form">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="reject">
+                                    <input type="hidden" name="next" value="{{ tasks_next }}">
+                                    <input type="text" name="review_notice" class="tl-review-input" placeholder="Revision notes">
+                                    <button type="submit" class="tl-btn-danger">Reject</button>
+                                </form>
+                                {% endif %}
+                                {% endif %}
+                                {% if can_delegate and task.team_id in led_team_ids %}
+                                <form method="POST" action="{% url 'management:delete_subtask' subtask.id %}" class="tl-subtask-delete-form">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="next" value="{{ tasks_next }}">
+                                    <button type="button" class="btn-delete-style js-delete-trigger">Delete</button>
+                                </form>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% empty %}
+                        <p class="tl-empty-inline">No sub-tasks delegated yet.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </article>
+            {% endwith %}
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="tl-empty-state">No main tasks are assigned to your teams yet. Your company owner can create main tasks from the Tasks module.</p>
+        {% endif %}
+    </section>
+    {% endif %}
+</div>
+{% endblock content %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.tl-accordion-toggle').forEach(function (toggle) {
+        toggle.addEventListener('click', function () {
+            const panel = document.getElementById(toggle.dataset.accordionTarget);
+            if (!panel) return;
+            panel.classList.toggle('open');
+            toggle.classList.toggle('open');
+        });
+    });
+});
+</script>
+{% endblock extra_js %}

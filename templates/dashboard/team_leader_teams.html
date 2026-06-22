@@ -1,0 +1,55 @@
+{% extends 'dashboard/team_leader_base.html' %}
+
+{% block title %}Teams | Team Leader | TaskFlow AI{% endblock title %}
+
+{% block page_heading %}My Teams{% endblock page_heading %}
+
+{% block content %}
+<div class="tl-workspace">
+    {% if not has_teams %}
+    <div class="tl-warning-notice tl-glass-card" role="alert">
+        <div class="tl-warning-icon" aria-hidden="true">!</div>
+        <div>
+            <h3>No Teams Assigned</h3>
+            <p>There are no teams assigned to you yet. Please review this with the Company Owner.</p>
+        </div>
+    </div>
+    {% else %}
+    <section class="tl-glass-card tl-section-card">
+        <div class="tl-section-header">
+            <div>
+                <p class="eyebrow">Squad Directory</p>
+                <h3>Assigned Teams</h3>
+                <p class="tl-section-sub">Teams where you are the leader or an active member. Team creation and deletion are restricted to Company Owners.</p>
+            </div>
+        </div>
+
+        <div class="tl-teams-grid">
+            {% for team in teams %}
+            <article class="tl-team-card">
+                <div class="tl-team-card-head">
+                    <h4>{{ team.name }}</h4>
+                    {% if team.team_leader_id == user.id %}
+                    <span class="tl-role-chip tl-role-chip--leader">Leader</span>
+                    {% else %}
+                    <span class="tl-role-chip">Member</span>
+                    {% endif %}
+                </div>
+                <ul class="tl-team-meta-list">
+                    <li><span>Leader</span><strong>{{ team.team_leader.get_full_name|default:team.team_leader.username|default:"Unassigned" }}</strong></li>
+                    <li><span>Members</span><strong>{{ team.member_count }}</strong></li>
+                    <li><span>Active Main Tasks</span><strong>{{ team.active_task_count }}</strong></li>
+                </ul>
+                <div class="tl-team-card-actions">
+                    <a href="{% url 'management:team_leader_discussions_team' team.id %}" class="tl-btn-ghost">Open Channel</a>
+                    {% if team.active_main_task_id %}
+                    <a href="{% url 'management:team_leader_boards' %}?main_task={{ team.active_main_task_id }}" class="tl-btn-ghost">View Board</a>
+                    {% endif %}
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+</div>
+{% endblock content %}

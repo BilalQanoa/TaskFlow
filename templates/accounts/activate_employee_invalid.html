@@ -1,0 +1,37 @@
+{% extends "accounts/accounts.html" %}
+
+{% block title %}
+Invalid Invitation - TaskFlow AI
+{% endblock title %}
+
+{% block content %}
+<header class="site-header">
+    <div class="page-shell">
+        <nav class="navbar">
+            <a href="/" class="brand">
+                <div class="brand-mark"><span></span></div>
+                <span class="brand-title">TaskFlow AI</span>
+            </a>
+        </nav>
+    </div>
+</header>
+
+<div class="page-shell">
+    <main class="auth-container activation-layout">
+        <div class="activation-card auth-card activation-card--error">
+            <div class="auth-header activation-header">
+                <span class="eyebrow">Invitation expired</span>
+                <h1>Invitation link has expired or is invalid</h1>
+                <p>
+                    This secure activation link is no longer valid. It may have expired, already been used,
+                    or been modified. Please contact your workspace administrator to request a new invitation.
+                </p>
+            </div>
+
+            <div class="activation-error-actions">
+                <a href="{% url 'accounts:login' %}" class="hero-cta auth-submit">Return to Login</a>
+            </div>
+        </div>
+    </main>
+</div>
+{% endblock content %}

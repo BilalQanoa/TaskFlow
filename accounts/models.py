@@ -9,8 +9,18 @@ class User(AbstractUser):
         ('member', 'Member'),
     ]
 
+    INVITATION_STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('active', 'Active'),
+    ]
+
     role = models.CharField(max_length=20, choices=ROLE_CHOICES)
     job_title = models.CharField(max_length=120, blank=True, default='')
+    invitation_status = models.CharField(
+        max_length=20,
+        choices=INVITATION_STATUS_CHOICES,
+        default='active',
+    )
     company = models.ForeignKey(
         'companies.Company',
         on_delete=models.SET_NULL,
